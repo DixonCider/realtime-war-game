@@ -838,9 +838,9 @@ th {
         });
 
     function gameLoop() {
-        $.post("http://rootn.rocks:8888/api/update", { data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
-            updateTroop(countryData, otherData)
-            console.log(countryData)
+        $.post("http://rootn.rocks:8888/api/update", { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
+            console.log(data)
+            updateTroop(data.countryData, data.otherData)
             // setTimeout(gameLoop, 100);
         });
     }
