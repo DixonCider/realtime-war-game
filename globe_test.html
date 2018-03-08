@@ -232,7 +232,7 @@ th {
     <script src="http://d3js.org/queue.v1.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
-    <script src="jquery-3.3.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
     d3.select(window)
         .on("mousemove", mousemove)
@@ -824,6 +824,25 @@ th {
             });
         // Refresh display.
         refresh();
+    }
+
+    let countryData = {};
+    let otherData = {};
+    const myCountry = 'DPRK';
+
+
+    $.get("http://rootn.rocks:8888/api/getMyTroops", {country: myCountry} , function (data, status) {
+            countryData = data.countryData;
+            otherData = data.otherData;
+            setTimeout(gameLoop, 100);
+        });
+
+    function gameLoop() {
+        $.post("http://rootn.rocks:8888/api/update", { data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
+            updateTroop(countryData, otherData)
+            console.log(countryData)
+            // setTimeout(gameLoop, 100);
+        });
     }
 </script>
 </body>
