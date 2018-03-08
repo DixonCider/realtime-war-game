@@ -57,6 +57,9 @@ body{
 .fogMask{
     fill: black;
 }
+.resource{
+
+}
 div.toolTipSelf {   
     position: absolute;         
     text-align: left;         
@@ -207,6 +210,17 @@ div.toolTipOther {
 .fx-sliderIn.active::after {
     width: 300%;
   }*/
+table {
+    border-collapse: collapse;
+    position: absolute;
+}
+
+table, th, td {
+    border: 1px solid white;
+}
+th {
+    color: white;
+}
 </style>
 
 <body>
@@ -228,7 +242,7 @@ div.toolTipOther {
     var width = screen.width * 0.95, height = screen.height * 0.95;
 
     var proj = d3.geo.orthographic()
-        .scale(220)
+        .scale(300)
         .translate([width / 2, height / 2])
         .clipAngle(90);
     var preD, postD, pntD;
@@ -248,16 +262,47 @@ div.toolTipOther {
         .attr("height", height)
         .attr("x", 0)
         .attr("y", 0)
+        .attr("position", "absolute")
         .on("mousedown", mousedown);
     // Append group for containing hover info.
     var toolTip = d3.select("body").append("div")
         .style("opacity", 0);
+    
     // asynchronous task assignment.
     queue()
         .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
         .defer(d3.json, "https://raw.githubusercontent.com/DixonCider/fongmun2017/master/places.json")
         .await(ready);
     // svg -> defs: graphical macro for later use (not rendered immdiately)
+    var emptyGeoCircle = d3.geoCircle().radius(0)();
+    var emptyGeoLineString = {
+        "type": "LineString",
+        "coordinates": [ [0,0], [0,0] ]
+    };
+    var thisCountry = null;
+    thisCountry = {
+        Troops: [
+            {
+                "id": 6666,
+                "loc": [0, 23.5],
+                "dest": [-120, 23.5],
+                "size": 100,
+                "unitAD": 10,
+                "unitHP": 10,
+                "fogR": 10,
+                "attackR": 5
+            },
+            {
+                "id": 666,
+                "loc": [0, -23.5],
+                "dest": null,
+                "size": 100,
+                "unitAD": 10,
+                "unitHP": 10,
+                "fogR": 10,
+                "attackR": 15
+            }]
+    };
     var vision = class vision {
         constructor(id, lat, lon, r){
             this.lat = lat;
@@ -318,15 +363,13 @@ div.toolTipOther {
         var fogsize = 900;
         var fog = svg.append("defs").append("pattern")
             .attr("id", "fog")
-            .attr("width", fogsize)
-            .attr("height", fogsize)
+            .attr("width", width)
+            .attr("height", height)
             .attr("patternUnits", "userSpaceOnUse");
         fog.append("svg:image")
             .attr("xlink:href", "fog.webp")
-            .attr("width", fogsize)
-            .attr("height", fogsize)
-            .attr("x", width / 3.5)
-            .attr("y", height / 6);
+            .attr("width", width)
+            .attr("height", height);
         var globe_shading = svg.append("defs").append("radialGradient")
             .attr("id", "globe_shading")
             .attr("cx", "50%")
@@ -370,12 +413,6 @@ div.toolTipOther {
             .attr("class", "fogMask")
             .style("fill", "white");
         */
-        var visionClip = svg.append("defs").append("clipPath")
-            .attr("id", "visionClip");
-        visionClip.append("circle")
-            .attr("cx", "300")
-            .attr("cy", "300")
-            .attr("r", "300");
         var drop_shadow = svg.append("defs").append("radialGradient")
             .attr("id", "drop_shadow")
             .attr("cx", "50%")
@@ -446,6 +483,9 @@ div.toolTipOther {
             .attr("r", proj.scale())
             .attr("class","noclicks")
             .style("fill", "url(#globe_shading)");
+        // Group for containing resource points.
+        svg.append("g")
+            .attr("class", "resources");
         // Append empty range of attack.
         var emptyCircle = d3.geoCircle().radius(0);
         svg.append("path")
@@ -457,16 +497,26 @@ div.toolTipOther {
             .on("mousedown", function(){
                 if (currentTroop != null) {
                     // send request to change dest.
-                    currentTroop.data()[0].dest = proj.invert([d3.event.pageX, d3.event.pageY]);
-                    
-
-                    var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(1);
+                    currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
+                    var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
                     var theDest = svg.select("#destDot")
                         .datum(destDot)
-                        .attr("d", path)
-                        .attr("transform", "translate(-7,-7)");
-                    console.log([currentTroop.data()[0].loc[0], currentTroop.data()[0].loc[1]]);
-                    console.log(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]));
+                        .attr("d", path);
+                    // Render the path.
+                    var pathLineString = {
+                        "type": "LineString",
+                        "coordinates": [
+                            currentTroop.data()[0].loc, currentTroop.data()[0].dest
+                        ]
+                    };
+                    // console.log(pathLineString);
+                    var destPath = d3.geoPath(pathLineString);
+                    // console.log(destPath());
+                    var thePath = svg.select("#destPath")
+                        .datum(pathLineString)
+                        .attr("d", path);
+                    // console.log(currentTroop.data()[0].loc);
+                    // console.log(currentTroop.data()[0].dest);
                 }
             });
         // Append destination red dot.
@@ -475,6 +525,12 @@ div.toolTipOther {
             .attr("id", "destDot")
             .attr("d", path)
             .style("fill", "red");
+        // Add doted path to destination.
+        svg.append("path")
+            .attr("id", "destPath")
+            .style("stroke", "red")
+            .style("fill", "none")
+            .style("stroke-dasharray", "2, 2");
         // Append group for containing myTroops.
         svg.append("g")
             .attr("id", "myTroopGroup");
@@ -504,6 +560,11 @@ div.toolTipOther {
             .style("display",function(d) {
                 var d = arc.distance({source: d.geometry.coordinates, target: centerPos});
                 return (d > 1.3) ? 'none' : 'inline';
+            });
+        svg.selectAll(".point")
+            .style("display",function(d) {
+                var d = arc.distance({source: d.geometry.coordinates, target: centerPos});
+                return (d > 1.3) ? 'none' : 'block';
             });
         // Troop must disappear outside of sphere.
         svg.selectAll(".myTroop")
@@ -564,7 +625,36 @@ div.toolTipOther {
         svg.selectAll(".notMyTroop")
             .attr("x", function(d){return proj(d.loc)[0]})
             .attr("y", function(d){return proj(d.loc)[1]});
+        svg.select("#destDot").attr("d", path);
+        svg.select("#destPath").attr("d", path);
+        svg.select(".resource").attr("d", path);
         position_labels();
+    }
+    function updateResource(resourcePoints){
+        svg.selectAll(".resource")
+            .data([])
+            .exit()
+            .remove();
+        svg.select(".resources").selectAll("path")
+            .data(function(){
+                var resourceCircle = [];
+                resourcePoints.forEach(function(d){
+                    var r = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.r)();
+                    resourceCircle.push(r);
+                });
+                console.log(resourceCircle);
+                return resourceCircle;
+            })
+            .enter()
+            .append("path")
+            .attr("class", "resource")
+            .attr("fill", "red")
+            .style("fill-opacity", "0.2")
+            .attr("stroke", "red")
+            .style("stroke-opacity", 0.4)
+            .style("stroke-width", 1)
+            .style("stroke-dasharray", "5, 5")
+            .attr("d", path);
     }
     function updateTroop(selfTroops, otherTroops){
         // Update self troop.
@@ -602,6 +692,40 @@ div.toolTipOther {
                 currentTroop.property("selected", !currentTroop.property("selected"));
                 var newCircle = null;
                 var opacityValue = 0.3;
+                // Render red dot.
+                if (currentTroop.data()[0].dest != null) {
+                    var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(1);
+                    var theDest = svg.select("#destDot")
+                        .datum(destDot)
+                        .attr("opacity", 0)
+                        .attr("d", path);
+                    theDest.transition()
+                        .duration(400)
+                        .attr("opacity", 1);
+                    // Render the path.
+                    var pathLineString = {
+                        "type": "LineString",
+                        "coordinates": [
+                            currentTroop.data()[0].loc, currentTroop.data()[0].dest
+                        ]
+                    };
+                    var destPath = d3.geoPath(pathLineString);
+                    var thePath = svg.select("#destPath")
+                        .datum(pathLineString)
+                        .attr("opacity", 0)
+                        .attr("d", path);
+                    thePath.transition()
+                        .duration(400)
+                        .attr("opacity", 1);
+                }
+                else {
+                    svg.select("#destDot")
+                        .datum(emptyGeoCircle)
+                        .attr("d", path);
+                    svg.select("#destPath")
+                        .datum(emptyGeoLineString)
+                        .attr("d", path);
+                }
                 if (currentTroop.property("selected")) {
                     var src = currentTroop.data()[0];
                     newCircle = d3.geoCircle()
@@ -613,9 +737,14 @@ div.toolTipOther {
                         .attr("d", path);
                 }
                 else {
-                    newCircle = d3.geoCircle().radius(0);
                     opacityValue = 0;
                     currentTroop = null;
+                    svg.select("#destDot")
+                        .datum(emptyGeoCircle)
+                        .attr("d", path);
+                    svg.select("#destPath")
+                        .datum(emptyGeoLineString)
+                        .attr("d", path);
                 }
                 svg.select("#focusTroop")
                     .transition()
