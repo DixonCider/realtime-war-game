@@ -231,8 +231,8 @@ th {
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/queue.v1.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
-    <script src="troopClass.js"></script>
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
     d3.select(window)
         .on("mousemove", mousemove)
@@ -498,6 +498,12 @@ th {
                 if (currentTroop != null) {
                     // send request to change dest.
                     currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
+                    $.ajax(
+                        `${serverURL}/updateDest`, {
+                            method: 'post',
+                            data: currentTroop.data()[0]
+                        }
+                    )
                     var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
                     var theDest = svg.select("#destDot")
                         .datum(destDot)
@@ -689,6 +695,7 @@ th {
                     .property("selected", false);
                 // Modify this troop.
                 currentTroop = d3.select(this);
+                console.log(currentTroop.data())
                 currentTroop.property("selected", !currentTroop.property("selected"));
                 var newCircle = null;
                 var opacityValue = 0.3;
@@ -824,6 +831,31 @@ th {
             });
         // Refresh display.
         refresh();
+    }
+
+    let countryData = {};
+    let otherData = {};
+    const myCountry = 'DPRK';
+    const serverURL = "http://localhost:8000/api"
+
+
+    $.get(`${serverURL}/getMyTroops`, {country: myCountry} , function (data, status) {
+            countryData = data.countryData;
+            otherData = data.otherData;
+            updateTroop(data.countryData, data.otherData)
+            setTimeout(gameLoop, 100);
+        });
+
+    function gameLoop() {
+        // console.log(countryData.Troops.filter(troop => troop.id == 24)[0].dest)
+        const myTroops = svg.selectAll(".myTroop").data()
+        myCountry.Troops = myTroops
+        // console.log(myTroops.filter(troop => troop.id == 20)[0].dest)
+        $.post(`${serverURL}/update`, { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
+            console.log('tick')
+            updateTroop(data.countryData, data.otherData)
+            setTimeout(gameLoop, 1000);
+        });
     }
 </script>
 </body>
