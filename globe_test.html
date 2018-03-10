@@ -270,6 +270,9 @@ th {
     var totalCountryList = ["DPRK", "USA", "Republic of Korea", "USSR", "ROC", "Japan", "Mexico", "India", "Phillipines"];
     var friendOrEnemyCheckbox = d3.select("body").append("div")
         .style("color", "white")
+        .style("position", "absolute")
+        .style("bottom", "20px")
+        .style("left", "20px")
         .property("innerHTML", "Enemy List")
         .selectAll("input")
         .data(totalCountryList)
@@ -483,45 +486,7 @@ th {
         // Group for containing resource points.
         svg.append("g")
             .attr("class", "resources");
-        // Append empty range of attack.
         var emptyCircle = d3.geoCircle().radius(0);
-        svg.append("path")
-            .datum(emptyCircle())
-            .attr("id", "focusTroop")
-            .attr("d", path)
-            .style("fill", "turquoise")
-            .style("opacity", 0.3)
-            .on("mousedown", function(){
-                if (currentTroop != null) {
-                    // send request to change dest.
-                    currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
-                    $.ajax(
-                        `${serverURL}/updateDest`, {
-                            method: 'post',
-                            data: currentTroop.data()[0]
-                        }
-                    )
-                    var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
-                    var theDest = svg.select("#destDot")
-                        .datum(destDot)
-                        .attr("d", path);
-                    // Render the path.
-                    var pathLineString = {
-                        "type": "LineString",
-                        "coordinates": [
-                            currentTroop.data()[0].loc, currentTroop.data()[0].dest
-                        ]
-                    };
-                    // console.log(pathLineString);
-                    var destPath = d3.geoPath(pathLineString);
-                    // console.log(destPath());
-                    var thePath = svg.select("#destPath")
-                        .datum(pathLineString)
-                        .attr("d", path);
-                    // console.log(currentTroop.data()[0].loc);
-                    // console.log(currentTroop.data()[0].dest);
-                }
-            });
         // Append destination red dot.
         svg.append("path")
             .datum(emptyCircle())
@@ -587,28 +552,52 @@ th {
         m0 = [d3.event.pageX, d3.event.pageY];
         o0 = proj.rotate();
         d3.event.preventDefault();
+
+
     }
     function mousemove() {
         if (m0) {
             var m1 = [d3.event.pageX, d3.event.pageY], 
                 o1 = [o0[0] + (m1[0] - m0[0]) / 6, o0[1] + (m0[1] - m1[1]) / 6];
+            /*
             o1[1] = o1[1] > 30  ? 30  :
                     o1[1] < -30 ? -30 :
                     o1[1];
+            */
             proj.rotate(o1);
             refresh();
         }
     }
     function mouseup() {
-        /*
         if (m0[0] == d3.event.pageX && m0[1] == d3.event.pageY) {
-            if (currentTroop != null) {
-                console.log(currentTroop.data()[0].loc);
-                console.log(proj.invert(m0));
-                console.log(d3.geoDistance(currentTroop.data()[0].loc,proj.invert(m0)) / Math.PI * 180);
+            var centerPos = proj.invert([width/2,height/2]);
+            var arc = d3.geo.greatArc();
+            var d = arc.distance({source: proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]), target: centerPos});
+            if (currentTroop != null && d3.event.target != currentTroop[0][0] && d < Math.PI / 2) {
+                // send request to change dest.
+                currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
+                var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
+                var theDest = svg.select("#destDot")
+                    .datum(destDot)
+                    .attr("d", path);
+                // Render the path.
+                var pathLineString = {
+                    "type": "LineString",
+                    "coordinates": [
+                        currentTroop.data()[0].loc, currentTroop.data()[0].dest
+                    ]
+                };
+                // console.log(pathLineString);
+                var destPath = d3.geoPath(pathLineString);
+                // console.log(destPath());
+                var thePath = svg.select("#destPath")
+                    .datum(pathLineString)
+                    .attr("d", path);
+                // console.log(currentTroop.data()[0].loc);
+                // console.log(currentTroop.data()[0].dest);
             }
         }
-        */
+        
         if (m0) {
             mousemove();
             m0 = null;
@@ -631,6 +620,7 @@ th {
         svg.select("#destDot").attr("d", path);
         svg.select("#destPath").attr("d", path);
         svg.select(".resource").attr("d", path);
+        svg.selectAll(".attackRange").attr("d", path);
         position_labels();
     }
     function updateResource(resourcePoints){
@@ -667,6 +657,24 @@ th {
             var fogCircleMask = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.fogR);
             troopFogList.push(fogCircleMask());
         });
+        // attack Range
+        svg.select("#myTroopGroup")
+            .selectAll("path")
+            .data(function(){
+                var aryAttackR = [];
+                selfTroops.Troops.forEach(function(d){
+                    var attackRCircle = d3.geoCircle().center(d.loc).radius(d.attackR)();
+                    aryAttackR.push(attackRCircle);
+                });
+                console.log(aryAttackR);
+                return aryAttackR;
+            })
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .attr("class", "attackRange")
+            .style("fill", "turquoise")
+            .style("opacity", 0.3);
         svg.selectAll(".myTroop")
             .data([])
             .exit()
@@ -676,11 +684,10 @@ th {
             .data(selfTroops.Troops)
             .enter()
             .append("image")
-            .attr("href", "troop.png")
+            .attr("href", thisCountry + ".png")
             .attr("class", "myTroop")
             .attr("height", 10)
             .attr("width", 10)
-            
             .attr("transform", function(d){
                 var output = "translate(-" + (d.fogR/2) + ",-" + (d.fogR/2) + ")"
                 return output;
@@ -693,7 +700,6 @@ th {
                     .property("selected", false);
                 // Modify this troop.
                 currentTroop = d3.select(this);
-                console.log(currentTroop.data())
                 currentTroop.property("selected", !currentTroop.property("selected"));
                 var newCircle = null;
                 var opacityValue = 0.3;
@@ -736,7 +742,6 @@ th {
                     newCircle = d3.geoCircle()
                         .center([src.loc[0], src.loc[1]])
                         .radius(src.attackR);
-                    console.log(src.attackR);
                     svg.select("#focusTroop")
                         .style("opacity", 0)
                         .datum(newCircle())
@@ -777,6 +782,7 @@ th {
                     .duration(500)      
                     .style("opacity", 0);
             });
+        
         // Update fog of war.
         svg.selectAll(".fogMasksSelf")
             .selectAll("path")
@@ -802,7 +808,9 @@ th {
             .data(otherTroops.Troops)
             .enter()
             .append("image")
-            .attr("href", "otherTroop.png")
+            .attr("href", function(d){
+                return d.country + ".png";
+            })
             .attr("class", "notMyTroop")
             .attr("x", function(d){return proj(d.loc)[0]})
             .attr("y", function(d){return proj(d.loc)[1]})
@@ -836,10 +844,8 @@ th {
     let countryData = {};
     let otherData = {};
     const myCountry = 'DPRK';
-    const serverURL = "http://localhost:8000/api"
 
-
-<<<<<<< HEAD
+    /*
     $.get("http://rootn.rocks:8888/api/getMyTroops", {country: myCountry} , function (data, status) {
         countryData = data.countryData;
         otherData = data.otherData;
@@ -851,25 +857,8 @@ th {
             console.log(data);
             updateTroop(data.countryData, data.otherData);
             // setTimeout(gameLoop, 100);
-=======
-    $.get(`${serverURL}/getMyTroops`, {country: myCountry} , function (data, status) {
-            countryData = data.countryData;
-            otherData = data.otherData;
-            updateTroop(data.countryData, data.otherData)
-            setTimeout(gameLoop, 100);
-        });
-
-    function gameLoop() {
-        // console.log(countryData.Troops.filter(troop => troop.id == 24)[0].dest)
-        const myTroops = svg.selectAll(".myTroop").data()
-        myCountry.Troops = myTroops
-        // console.log(myTroops.filter(troop => troop.id == 20)[0].dest)
-        $.post(`${serverURL}/update`, { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
-            console.log('tick')
-            updateTroop(data.countryData, data.otherData)
-            setTimeout(gameLoop, 1000);
->>>>>>> cb1c6f06983fd7caa337f6ae2bfb8a3a5efc081b
         });
     }
+    */
 </script>
 </body>
