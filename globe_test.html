@@ -267,7 +267,27 @@ th {
     // Append group for containing hover info.
     var toolTip = d3.select("body").append("div")
         .style("opacity", 0);
-    
+    var totalCountryList = ["DPRK", "USA", "Republic of Korea", "USSR", "ROC", "Japan", "Mexico", "India", "Phillipines"];
+    var friendOrEnemyCheckbox = d3.select("body").append("div")
+        .style("color", "white")
+        .property("innerHTML", "Enemy List")
+        .selectAll("input")
+        .data(totalCountryList)
+        .enter()
+        .append("div");
+    friendOrEnemyCheckbox.append("input")
+        .attr("type", "checkbox")
+        .on("change", function(d){
+            // Send request to change enemyList
+            // d is the name of the changed country
+            // this.checked == isEnemy
+            // thisCountry is this country
+        });
+    friendOrEnemyCheckbox.append("label")
+        .style("color", "white")
+        .property("innerHTML", function(d){
+            return d;
+        });
     // asynchronous task assignment.
     queue()
         .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
@@ -280,29 +300,6 @@ th {
         "coordinates": [ [0,0], [0,0] ]
     };
     var thisCountry = null;
-    thisCountry = {
-        Troops: [
-            {
-                "id": 6666,
-                "loc": [0, 23.5],
-                "dest": [-120, 23.5],
-                "size": 100,
-                "unitAD": 10,
-                "unitHP": 10,
-                "fogR": 10,
-                "attackR": 5
-            },
-            {
-                "id": 666,
-                "loc": [0, -23.5],
-                "dest": null,
-                "size": 100,
-                "unitAD": 10,
-                "unitHP": 10,
-                "fogR": 10,
-                "attackR": 15
-            }]
-    };
     var vision = class vision {
         constructor(id, lat, lon, r){
             this.lat = lat;
@@ -657,6 +654,7 @@ th {
             .attr("d", path);
     }
     function updateTroop(selfTroops, otherTroops){
+        thisCountry = selfTroops.Nation;
         // Update self troop.
         var troopFogList = [];
         selfTroops.Troops.forEach(function(d){
@@ -731,6 +729,7 @@ th {
                     newCircle = d3.geoCircle()
                         .center([src.loc[0], src.loc[1]])
                         .radius(src.attackR);
+                    console.log(src.attackR);
                     svg.select("#focusTroop")
                         .style("opacity", 0)
                         .datum(newCircle())
@@ -746,6 +745,7 @@ th {
                         .datum(emptyGeoLineString)
                         .attr("d", path);
                 }
+
                 svg.select("#focusTroop")
                     .transition()
                     .duration(300)
@@ -832,15 +832,15 @@ th {
 
 
     $.get("http://rootn.rocks:8888/api/getMyTroops", {country: myCountry} , function (data, status) {
-            countryData = data.countryData;
-            otherData = data.otherData;
-            setTimeout(gameLoop, 100);
-        });
+        countryData = data.countryData;
+        otherData = data.otherData;
+        setTimeout(gameLoop, 100);
+    });
 
     function gameLoop() {
         $.post("http://rootn.rocks:8888/api/update", { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
-            console.log(data)
-            updateTroop(data.countryData, data.otherData)
+            console.log(data);
+            updateTroop(data.countryData, data.otherData);
             // setTimeout(gameLoop, 100);
         });
     }
