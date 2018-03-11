@@ -84,6 +84,10 @@ div.toolTipOther {
     border-radius: 8px;         
     pointer-events: none;           
 }
+@font-face { 
+    font-family:Oswald; 
+    src: url('Oswald-Regular.ttf'); 
+}
 @font-face { font-family:handwriting; src: url('handwriting-black-draft_DEMO.otf'); } 
  h1{
     margin: 0;
@@ -105,74 +109,99 @@ div.toolTipOther {
     top: 100px;
     left: 30px;
  }
-
- .ctrl-standard.fx-bubbleDown {
-  position: absolute;
-  top: 30px;
-  left: 1100px;
-  margin: 0;
-  padding: 10px 15px;
-  font-size: 18px;
-  font-family: 'Oswald', sans-serif;
+.logout{
+    position: absolute;
+    top: 30px;
+    left: 1180px;
+    background-color: #ffffff;
+ }
+.ctrl-standard.fx-bubbleDown {
+  padding: 10px 18px;
+  font-size: 20px;
+  font-family: Oswald;
+  line-height: 24px;
+  letter-spacing: 0;
   color: #f0b81f;
   border-color: #f0b81f;
   background-color: black;
+  width: 100%;
+  height: 100%;
+  /*position: fixed;
+  top: 30px;
+  left: 1100px;
+  top: 0px;
+  margin: 0;*/
 }
+
 .ctrl-standard.fx-bubbleDown::after {
   bottom: auto;
   border-radius: 0 0 $right-val2 $left-val2/0 0 $right-val1 $left-val1;
   background: #f0b81f;
 }
+
+.techtree{
+    position: absolute;
+    top: 30px;
+    left: 1100px;
+    background-color: #ffffff;
+}
+
 .ctrl-standard.fx-bubbleUp {
-  position: absolute;
-  top: 30px;
-  left: 1075px;
-  margin: 0;
-  padding: 10px 12px;
-  font-size: 18px;
-  font-family: 'Oswald', sans-serif;
+  padding: 10px 15px;
+  font-size: 20px;
+  font-family: Oswald;
+  line-height: 24px;
+  letter-spacing: 0;
   color: #9fa255;
   border-color: #9fa255;
-  background-color: black;
+  background-color: black; 
+  /*position: fixed;
+  top: 30px;
+  left: 1075px;
+  top: 0px;
+  margin: 0;*/
 }
+
 .ctrl-standard.fx-bubbleUp::after {
   top: auto;
   border-radius: $right-val1 $left-val1 0 0/$right-val2 $left-al2 0 0;
   background: #9fa255;
 }
-[class*="ctrl-"] {
+
+[class*="ctrl-"]{
   padding: 5px 10px;
   border-radius: 2px;
   border: 1px solid #231f20;
 }
+
 [class*="ctrl-"][class*="fx-"]:hover,
 [class*="ctrl-"][class*="fx-"].active {
   color: #231f20;
 }
-[class*="ctrl-"][class*="fx-"].is-reversed {
-  color: #231f20;
-}
 
-  [class*="fx-"],
+[class*="fx-"],
 [class*="fx-"]:hover {
     -webkit-transition: color 0.5s  ease-in-out;
     transition: color 0.5s  ease-in-out;
-  }
-  [class*="fx-"]:not(.fx-dyna) {
+}
+
+[class*="fx-"]:not(.fx-dyna) {
     position: relative;
     z-index: 1;
     -webkit-transition-delay: 0.2s !important;
             transition-delay: 0.2s !important;
     overflow: hidden;
-  }
-  [class*="fx-"]:not(.fx-dyna)::after,
+}
+
+[class*="fx-"]:not(.fx-dyna)::after,
 [class*="fx-"]:not(.fx-dyna)::before {
     content: "";
     display: block;
     position: absolute;
     z-index: -1;
-  }
-  [class*="fx-bubble"]::after {
+}
+  
+[class*="fx-bubble"]::after {
     -webkit-transition: height 0.5s ease-in-out;
     transition: height 0.5s ease-in-out;
     top: 0;
@@ -181,35 +210,18 @@ div.toolTipOther {
     left: 0;
     height: 0;
     width: 100%;
-  }
-  [class*="fx-bubble"]:hover::after,
+}
+
+[class*="fx-bubble"]:hover::after,
 [class*="fx-bubble"].active::after {
     -webkit-transition: height 0.5s ease-in-out;
     transition: height 0.5s ease-in-out;
     height: 300%;
-  }
-    [class*="fx-bubble"]:disabled:hover::after {
-        height: 0;
-    }
- /* .fx-sliderIn::after {
-    -webkit-transition: width 0.5s ease-in-out;
-    transition: width 0.5s ease-in-out;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 0;
-  }
-  .fx-sliderIn:hover::after,
-.fx-sliderIn.active::after {
-    -webkit-transition: width 0.5s ease-in-out;
-    transition: width 0.5s ease-in-out;
-    width: 100%;
-  }
-  :checked + .fx-sliderIn::after,
-.fx-sliderIn.active::after {
-    width: 300%;
-  }*/
+}
+    
+[class*="fx-bubble"]:disabled:hover::after {
+    height: 0;
+}
 table {
     border-collapse: collapse;
     position: absolute;
@@ -226,8 +238,12 @@ th {
 <body>
     <h1>FONNGMUN</h1>
     <p>Round 1 Current Time: 10:00</p>
-    <!-- <button class="ctrl-standard fx-bubbleUp">Tech<br>Tree</button>
-    <button class="ctrl-standard fx-bubbleDown">Log<br>Out</button> -->
+    <div class="techtree">
+        <button class="ctrl-standard fx-bubbleUp">Tech<br>Tree</button>
+    </div>
+    <div class="logout"> 
+         <button class="ctrl-standard fx-bubbleDown">Log<br>Out</button>
+    </div>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/queue.v1.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
