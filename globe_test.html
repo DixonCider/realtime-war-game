@@ -576,6 +576,12 @@ th {
             if (currentTroop != null && d3.event.target != currentTroop[0][0] && d < Math.PI / 2) {
                 // send request to change dest.
                 currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
+                $.ajax(
+                    `${serverURL}/updateDest`, {
+                        method: 'post',
+                        data: currentTroop.data()[0]
+                    }
+                )
                 var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
                 var theDest = svg.select("#destDot")
                     .datum(destDot)
@@ -844,14 +850,9 @@ th {
     let countryData = {};
     let otherData = {};
     const myCountry = 'DPRK';
-    const serverURL = "http://localhost:8000/api";
+    const serverURL = 'http://192.168.1.212:8000/api';
 
     
-    $.get("https://192.168.1.212/api/getMyTroops", {country: myCountry} , function (data, status) {
-        countryData = data.countryData;
-        otherData = data.otherData;
-        setTimeout(gameLoop, 100);
-    });
     $.get(`${serverURL}/getMyTroops`, {country: myCountry} , function (data, status) {
             countryData = data.countryData;
             otherData = data.otherData;
@@ -870,14 +871,6 @@ th {
             setTimeout(gameLoop, 1000);
          });
      }
-
-    function gameLoop() {
-        $.post("https://192.168.1.212/api/update", { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
-            console.log(data);
-            updateTroop(data.countryData, data.otherData);
-            // setTimeout(gameLoop, 100);
-        });
-    }
     
 </script>
 </body>
