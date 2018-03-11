@@ -112,7 +112,7 @@ div.toolTipOther {
 .logout{
     position: absolute;
     top: 30px;
-    left: 1180px;
+    right: 20px;
     background-color: #ffffff;
  }
 .ctrl-standard.fx-bubbleDown {
@@ -142,7 +142,7 @@ div.toolTipOther {
 .techtree{
     position: absolute;
     top: 30px;
-    left: 1100px;
+    right: 100px;
     background-color: #ffffff;
 }
 
@@ -250,6 +250,9 @@ th {
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
+
+    // console.log(screen.width);
+
     d3.select(window)
         .on("mousemove", mousemove)
         .on("mouseup", mouseup);
@@ -283,7 +286,19 @@ th {
     // Append group for containing hover info.
     var toolTip = d3.select("body").append("div")
         .style("opacity", 0);
-    var totalCountryList = ["DPRK", "USA", "Republic of Korea", "USSR", "ROC", "Japan", "Mexico", "India", "Phillipines"];
+    var totalCountryList = ["DPRK", "USA", "Republic of Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
+    /*
+    var createContainer = d3.select("body").append("div")
+        .style("position", "absolute")
+        .style("bottom", "20px")
+        .style("right", "20px");
+    createContainer.append("label")
+        .style("color", "white")
+        .property("innerHTML", "Create Mode");
+    createContainer.append("input")
+        .attr("type", "checkbox")
+        .attr("id", "CreateMode");
+    */
     var friendOrEnemyCheckbox = d3.select("body").append("div")
         .attr("id", "friendOrEnemyContainer")
         .style("color", "white")
@@ -593,6 +608,7 @@ th {
     }
     function mouseup() {
         if (m0[0] == d3.event.pageX && m0[1] == d3.event.pageY) {
+            console.log(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]));
             var centerPos = proj.invert([width/2,height/2]);
             var arc = d3.geo.greatArc();
             var d = arc.distance({source: proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]), target: centerPos});
