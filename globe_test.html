@@ -844,21 +844,40 @@ th {
     let countryData = {};
     let otherData = {};
     const myCountry = 'DPRK';
+    const serverURL = "http://localhost:8000/api";
 
-    /*
-    $.get("http://rootn.rocks:8888/api/getMyTroops", {country: myCountry} , function (data, status) {
+    
+    $.get("https://192.168.1.212/api/getMyTroops", {country: myCountry} , function (data, status) {
         countryData = data.countryData;
         otherData = data.otherData;
         setTimeout(gameLoop, 100);
     });
+    $.get(`${serverURL}/getMyTroops`, {country: myCountry} , function (data, status) {
+            countryData = data.countryData;
+            otherData = data.otherData;
+            updateTroop(data.countryData, data.otherData)
+            setTimeout(gameLoop, 100);
+        });
 
     function gameLoop() {
-        $.post("http://rootn.rocks:8888/api/update", { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
+        // console.log(countryData.Troops.filter(troop => troop.id == 24)[0].dest)
+        const myTroops = svg.selectAll(".myTroop").data()
+        myCountry.Troops = myTroops
+        // console.log(myTroops.filter(troop => troop.id == 20)[0].dest)
+        $.post(`${serverURL}/update`, { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
+            console.log('tick')
+            updateTroop(data.countryData, data.otherData)
+            setTimeout(gameLoop, 1000);
+         });
+     }
+
+    function gameLoop() {
+        $.post("https://192.168.1.212/api/update", { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
             console.log(data);
             updateTroop(data.countryData, data.otherData);
             // setTimeout(gameLoop, 100);
         });
     }
-    */
+    
 </script>
 </body>
