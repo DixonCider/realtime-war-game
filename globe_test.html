@@ -641,7 +641,6 @@ th {
                     var r = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.r)();
                     resourceCircle.push(r);
                 });
-                console.log(resourceCircle);
                 return resourceCircle;
             })
             .enter()
@@ -676,7 +675,6 @@ th {
                     var attackRCircle = d3.geoCircle().center(d.loc).radius(d.attackR)();
                     aryAttackR.push(attackRCircle);
                 });
-                console.log(aryAttackR);
                 return aryAttackR;
             })
             .enter()
@@ -792,7 +790,41 @@ th {
                     .duration(500)      
                     .style("opacity", 0);
             });
-        
+        // Update currentTroop.
+        if (currentTroop != null) {
+            var countryName = currentTroop.data()[0].country;
+            var countryID = currentTroop.data()[0].id;
+            currentTroop = svg.selectAll(".myTroop")
+                .filter(function(d) { return d.id == countryID});
+            // Render red dot.
+            if (currentTroop.data()[0].dest != null) {
+                var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(1);
+                var theDest = svg.select("#destDot")
+                    .datum(destDot)
+                    .attr("opacity", 1)
+                    .attr("d", path);
+                // Render the path.
+                var pathLineString = {
+                    "type": "LineString",
+                    "coordinates": [
+                        currentTroop.data()[0].loc, currentTroop.data()[0].dest
+                    ]
+                };
+                var destPath = d3.geoPath(pathLineString);
+                var thePath = svg.select("#destPath")
+                    .datum(pathLineString)
+                    .attr("opacity", 1)
+                    .attr("d", path);
+            }
+            else {
+                svg.select("#destDot")
+                    .datum(emptyGeoCircle)
+                    .attr("d", path);
+                svg.select("#destPath")
+                    .datum(emptyGeoLineString)
+                    .attr("d", path);
+            }
+        }
         // Update fog of war.
         svg.selectAll(".fogMasksSelf")
             .selectAll("path")
@@ -870,7 +902,6 @@ th {
         myCountry.Troops = myTroops
         // console.log(myTroops.filter(troop => troop.id == 20)[0].dest)
         $.post(`${serverURL}/update`, { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
-            console.log('tick')
             updateTroop(data.countryData, data.otherData)
             setTimeout(gameLoop, 1000);
          });
