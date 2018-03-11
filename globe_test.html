@@ -679,6 +679,9 @@ th {
     }
     function updateTroop(selfTroops, otherTroops){
         thisCountry = selfTroops.Nation;
+        // Update checkbox.
+        d3.select("#friendOrEnemyContainer").selectAll("input")
+            .filter(function(d) { return d == thisCountry}).property("disabled", "true")
         // Update self troop.
         var troopFogList = [];
         selfTroops.Troops.forEach(function(d){
