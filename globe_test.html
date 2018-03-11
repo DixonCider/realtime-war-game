@@ -663,6 +663,10 @@ th {
             var fogCircleMask = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.fogR);
             troopFogList.push(fogCircleMask());
         });
+        svg.selectAll(".attackRange")
+            .data([])
+            .exit()
+            .remove();
         // attack Range
         svg.select("#myTroopGroup")
             .selectAll("path")
