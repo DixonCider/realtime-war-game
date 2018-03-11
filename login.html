@@ -29,7 +29,7 @@ a:hover {
   background: rgba(19, 35, 47, 0.9);
   padding: 40px;
   /*max-width: 600px;*/
-  max-width: 500px;
+  max-width: 450px;
   margin: 40px auto;
   border-radius: 4px;
   -webkit-box-shadow: 0 4px 10px 4px rgba(19, 35, 47, 0.3);
@@ -84,7 +84,7 @@ a:hover {
   text-align: center;
   font-size: 30px;
   font-weight: 300;
-  width:500px;
+  width:450px;
   left: -40px;
   position: relative;
 }
@@ -98,16 +98,22 @@ h1 {
 
 label {
   position: absolute;
-  -webkit-transform: translateY(6px);
-          transform: translateY(6px);
-  left: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  /*-webkit-transform: translateY(6px);*/
+          /*transform: translateY(6px);*/
+  /*left: 13px;*/
+  /*color: rgba(255, 255, 255, 0.5);*/
+  color: #ffffff;
   -webkit-transition: all 0.25s ease;
   transition: all 0.25s ease;
   -webkit-backface-visibility: hidden;
   pointer-events: none;
-  font-size: 22px;
+  /*font-size: 22px;*/
+  -webkit-transform: translateY(50px);
+          transform: translateY(50px);
+  left: 2px;
+  font-size: 16px;
 }
+
 label .req {
   margin: 2px;
   color: #1ab188;
@@ -135,6 +141,7 @@ input, textarea {
   padding: 5px 10px;
   background: none;
   background-image: none;
+  background-color: rgba(19, 35, 47, 0.9);
   border: 1px solid #a0b3b0;
   color: #ffffff;
   border-radius: 0;
@@ -143,6 +150,7 @@ input, textarea {
   transition: border-color .25s ease, box-shadow .25s ease;
   transition: border-color .25s ease, box-shadow .25s ease, -webkit-box-shadow .25s ease;
 }
+
 input:focus, textarea:focus {
   outline: 0;
   border-color: #1ab188;
@@ -151,6 +159,29 @@ input:focus, textarea:focus {
 textarea {
   border: 2px solid #a0b3b0;
   resize: vertical;
+}
+
+select, textarea{
+  font-size: 22px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 5px 10px;
+  background: none;
+  background-color: rgba(19, 35, 47, 0.9); 
+  background-image: none;
+  border: 1px solid #a0b3b0;
+  color: #ffffff;
+  border-radius: 0;
+  -webkit-transition: border-color .25s ease, -webkit-box-shadow .25s ease;
+  transition: border-color .25s ease, -webkit-box-shadow .25s ease;
+  transition: border-color .25s ease, box-shadow .25s ease;
+  transition: border-color .25s ease, box-shadow .25s ease, -webkit-box-shadow .25s ease;
+}
+
+select:focus, textarea:focus {
+  outline: 0;
+  border-color: #1ab188;
 }
 
 .field-wrap {
@@ -173,6 +204,7 @@ textarea {
 }
 
 .button {
+  margin-top: 20px;
   border: 0;
   outline: none;
   border-radius: 0;
@@ -186,6 +218,7 @@ textarea {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
   -webkit-appearance: none;
+
 }
 .button:hover, .button:focus {
   background: #179b77;
@@ -194,6 +227,7 @@ textarea {
 .button-block {
   display: block;
   width: 100%;
+  margin-top: 70px;
 }
 
 .forgot {
@@ -208,7 +242,7 @@ textarea {
 
 console.log("loaded!");
 
-window.onload = function() {
+/*window.onload = function() {
     if (window.jQuery) {  
         // jQuery is loaded  
         alert("Yeah!");
@@ -216,57 +250,14 @@ window.onload = function() {
         // jQuery is not loaded
         alert("Doesn't Work");
     }
-}
+}*/
 
-$(document).ready(function(){
+/*$(document).ready(function(){
     $("p").click(function(){
         $(this).hide();
     });
-});
-
-/*$('.form').find('input, textarea').on('keyup blur focus', function (e) {
-  
-  var $this = $(this),
-      label = $this.prev('label');
-
-    if (e.type === 'keyup') {
-      if ($this.val() === '') {
-          label.removeClass('active highlight');
-        } else {
-          label.addClass('active highlight');
-        }
-    } else if (e.type === 'blur') {
-      if( $this.val() === '' ) {
-        label.removeClass('active highlight'); 
-      } else {
-        label.removeClass('highlight');   
-      }   
-    } else if (e.type === 'focus') {
-      
-      if( $this.val() === '' ) {
-        label.removeClass('highlight'); 
-      } 
-      else if( $this.val() !== '' ) {
-        label.addClass('highlight');
-      }
-    }
-
-});
-
-$('.tab a').on('click', function (e) {
-  
-  e.preventDefault();
-  
-  $(this).parent().addClass('active');
-  $(this).parent().siblings().removeClass('active');
-  
-  target = $(this).attr('href');
-
-  $('.tab-content > div').not(target).hide();
-  
-  $(target).fadeIn(600);
-  
 });*/
+
 $(".form")
   .find("input, textarea")
   .on("keyup blur focus", function(e) {
@@ -319,86 +310,46 @@ $(".tab a").on("click", function(e) {
 
 </script>
 <body>
-<p>Click me!</p>
+<!-- <p>Click me!</p> -->
 <div class="form">
-      
       <div class="Fongmun">
         FongMUN War 2018
       </div>
-      <!--<ul class="tab-group">
-        <li class="tab"><a href="#signup">Sign Up</a></li>
-        <li class="tab active"><a href="#login">Log In</a></li>
-      </ul>-->
-      
-      <!--<div class="tab-content">
-        <div id="signup">   
-          <h1>Sign Up for Free</h1>
-          
-          <form action="/" method="post">
-          
-          <div class="top-row">
-            <div class="field-wrap">
-              <label>
-                First Name<span class="req">*</span>
-              </label>
-              <input type="text" required autocomplete="off" />
-            </div>
-        
-            <div class="field-wrap">
-              <label>
-                Last Name<span class="req">*</span>
-              </label>
-              <input type="text"required autocomplete="off"/>
-            </div>
-          </div>
-
-          <div class="field-wrap">
-            <label>
-              Email Address<span class="req">*</span>
-            </label>
-            <input type="email"required autocomplete="off"/>
-          </div>
-          
-          <div class="field-wrap">
-            <label>
-              Set A Password<span class="req">*</span>
-            </label>
-            <input type="password"required autocomplete="off"/>
-          </div>
-          
-          <button type="submit" class="button button-block"/>Get Started</button>
-          
-          </form>
-
-        </div>-->
-        
         <div id="login">   
           <h1>Welcome!</h1>
-          
-          <form action="/" method="post">
-          
-            <div class="field-wrap">
-            <!--<label>
-              Email Address<span class="req">*</span>
-            </label>
-            <input type="email"required autocomplete="off"/>-->
-            <label>
+          <form action="file:///C:/Users/acer/Desktop/merged/globe_test.html" method="get" target="_blank" id="page">
+
+          <div class="field-wrap">
+           <label>
               Country<span class="req">*</span>
             </label>
-            <input type="country"required autocomplete="off"/>
+            <!-- <input type="country"required autocomplete="off"/> -->
+            <!-- <input type="text" name="country"> -->
+            <select name="country" form="page">
+              <option value="dprk">DPRK</option>
+              <option value="usa">USA</option>
+              <option value="korea">Republic of Korea</option>
+              <option value="ussr">USSR</option>
+              <option value="roc">ROC</option>
+              <option value="japan">Japan</option>
+              <option value="mexico">Mexico</option>
+              <option value="india">India</option>
+              <option value="phillipines">Phillipines</option>
+            </select>
           </div>
           
           <div class="field-wrap">
             <label>
               Password<span class="req">*</span>
             </label>
-            <input type="password"required autocomplete="off"/>
+            <!-- <input type="password"required autocomplete="off"/> -->
+            <input type="text" name="password"/>
           </div>
           
-          <p class="forgot"><a href="#">Forgot Password?</a></p>
-          
-          <button class="button button-block"/>Log In</button>
-          
+          <!-- <p class="forgot"><a href="#">Forgot Password?</a></p> -->
+          <!-- <button class="button button-block"/>Log In</button>   -->
+          <input type="submit" value="Log In" class="button button-block">
+
           </form>
 
         </div>
