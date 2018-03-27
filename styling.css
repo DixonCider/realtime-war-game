@@ -230,3 +230,7 @@ table, th, td {
 th {
     color: white;
 }
+.attackRange {
+    fill: turquoise;
+    opacity: 0.3;
+}

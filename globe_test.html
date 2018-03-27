@@ -4,11 +4,13 @@
     <link rel="stylesheet" type="text/css" href="styling.css">
 </head>
 <body>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="http://d3js.org/queue.v1.min.js"></script>
-    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="http://d3js.org/d3.v5.min.js"></script>
+    <script src="http://d3js.org/topojson.v3.min.js"></script>
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+    <script src="https://d3js.org/d3-request.v1.min.js"></script>
+    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
     <script>
     var body = d3.select("body");
     body.append("h1")
@@ -28,12 +30,18 @@
         .html("Log<br>Out");
     d3.select(window)
         .on("mousemove", mousemove)
-        .on("mouseup", mouseup);
+        .on("mouseup", mouseup)
+        .on("keydown", function(){
+            if (d3.event.keyCode == 27) {
+                currentTroop = null;
+                setSelectedAsNone();
+            }
+        });
 
     // var width = 960, height = 500;
     var width = screen.width * 0.95, height = screen.height * 0.95;
 
-    var proj = d3.geo.orthographic()
+    var proj = d3.geoOrthographic()
         .scale(300)
         .translate([width / 2, height / 2])
         .clipAngle(90);
@@ -44,9 +52,9 @@
     // projection.scale([scale]) -> scale factor of projection
     // projection.clipAngle -> semi-fog of war, how much degree to displaya
     // projection.translate([x, y]) -> offset projection's center coordinate
-    var path = d3.geo.path().projection(proj).pointRadius(1);
+    var path = d3.geoPath().projection(proj).pointRadius(1);
     // d3.geo.path() -> given geoJSON object -> generate a SVG path
-    var graticule = d3.geo.graticule();
+    var graticule = d3.geoGraticule();
     // graticule -> vertical and horizontal grid lines 
     // -> returns a GeoJSON MultiLineString Geometry object representing all meridians and parallels
     var svg = body.append("svg")
@@ -55,7 +63,8 @@
         .attr("x", 0)
         .attr("y", 0)
         .attr("position", "absolute")
-        .on("mousedown", mousedown);
+        .on("mousedown", mousedown)
+        .on("mouseup", moveDestination);
     // Append group for containing hover info.
     var toolTip = body.append("div")
         .style("opacity", 0);
@@ -103,7 +112,7 @@
             return d;
         });
     // asynchronous task assignment.
-    queue()
+    d3.queue()
         .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
         .defer(d3.json, "https://raw.githubusercontent.com/DixonCider/fongmun2017/master/places.json")
         .await(ready);
@@ -113,7 +122,6 @@
         "type": "LineString",
         "coordinates": [ [0,0], [0,0] ]
     };
-    var thisCountry = null;
     /*
     var vision = class vision {
         constructor(id, lat, lon, r){
@@ -154,6 +162,7 @@
     var currentTroop = null;
 
     function ready(error, world, places) {
+        if (error) throw error;
         var ocean_fill = svg.append("defs").append("radialGradient")
             .attr("id", "ocean_fill")
             .attr("cx", "75%")
@@ -194,19 +203,19 @@
             .attr("stop-opacity","0.3")
         var visionMask = svg.append("defs").append("mask")
             .attr("id", "visionMask");
-            /*
+            
         visionMask.append("circle")
             .attr("cx", width / 2).attr("cy", height / 2)
             .attr("r", proj.scale())
             .attr("class", "fogMask")
             .style("fill", "white");
-            */
-        var fogMotherMaskCircle = d3.geoCircle().center([0, 90]).radius(180);
+            
+        var fogMotherMaskCircle = d3.geoCircle().center([0, 0]).radius(180)();
         visionMask.append("path")
-            .datum(fogMotherMaskCircle())
-            .attr("d", path)
+            .datum(fogMotherMaskCircle)
             .attr("class", "fogMask")
-            .style("fill", "white");
+            .style("fill", "white")
+            .attr("d", path);
         visionMask.append("g")
             .attr("class", "fogMasksSelf");
         visionMask.append("g")
@@ -277,12 +286,13 @@
             .text(function(d) { return d.properties.name });
 
         // append gray cover
-        var fogCircle = d3.geoCircle().center([0,90]).radius(180);
+        var fogCircle = d3.geoCircle().center([0,90]).radius(179)();
         svg.append("path")
             .datum(fogCircle)
             .attr("class", "fog")
             .attr("d", path)
-            .attr("mask", "url(#visionMask)");
+            .attr("fill", "url(#fog)");
+            //.attr("mask", "url(#visionMask)");
         // sun shine land brighter
         svg.append("circle")
             .attr("cx", width / 2).attr("cy", height / 2)
@@ -321,7 +331,6 @@
     }
     function position_labels() { //how labels chage their angle
         var centerPos = proj.invert([width/2,height/2]);
-        var arc = d3.geo.greatArc();
 
         svg.selectAll(".label")
             .attr("text-anchor",function(d) {
@@ -338,23 +347,23 @@
                 return "translate(" + (x+offset) + "," + (y-2) + ")"
             })
             .style("display",function(d) {
-                var d = arc.distance({source: d.geometry.coordinates, target: centerPos});
+                var d = d3.geoDistance(d.geometry.coordinates, centerPos);
                 return (d > 1.3) ? 'none' : 'inline';
             });
         svg.selectAll(".point")
             .style("display",function(d) {
-                var d = arc.distance({source: d.geometry.coordinates, target: centerPos});
+                var d = d3.geoDistance(d.geometry.coordinates, centerPos);
                 return (d > 1.3) ? 'none' : 'block';
             });
         // Troop must disappear outside of sphere.
         svg.selectAll(".myTroop")
             .style("display",function(d) {
-                var d = arc.distance({source: d.loc, target: centerPos});
+                var d = d3.geoDistance(d.loc, centerPos);
                 return (d > 1.3) ? 'none' : 'block';
             });
         svg.selectAll(".notMyTroop")
             .style("display",function(d) {
-                var d = arc.distance({source: d.loc, target: centerPos});
+                var d = d3.geoDistance(d.loc, centerPos);
                 return (d > 1.3) ? 'none' : 'block';
             });
     }
@@ -364,8 +373,6 @@
         m0 = [d3.event.pageX, d3.event.pageY];
         o0 = proj.rotate();
         d3.event.preventDefault();
-
-
     }
     function mousemove() {
         if (m0) {
@@ -380,13 +387,21 @@
             refresh();
         }
     }
-    function mouseup() {
+    function setSelectedAsNone(){
+        svg.select("#destDot")
+            .datum(emptyGeoCircle)
+            .attr("d", path);
+        svg.select("#destPath")
+            .datum(emptyGeoLineString)
+            .attr("d", path);
+    }
+    function moveDestination(){
         if (m0[0] == d3.event.pageX && m0[1] == d3.event.pageY) {
             console.log(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]));
             var centerPos = proj.invert([width/2,height/2]);
-            var arc = d3.geo.greatArc();
-            var d = arc.distance({source: proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]), target: centerPos});
-            if (currentTroop != null && d3.event.target != currentTroop[0][0] && d < Math.PI / 2) {
+            var arc = d3.geoDistance;
+            var d = arc(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]), centerPos);
+            if (currentTroop != null && d3.event.target != currentTroop._groups[0][0] && d < Math.PI / 2) {
                 // send request to change dest.
                 currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
                 $.ajax(
@@ -396,7 +411,7 @@
                     }
                 )
                 var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
-                var theDest = svg.select("#destDot")
+                svg.select("#destDot")
                     .datum(destDot)
                     .attr("d", path);
                 // Render the path.
@@ -409,14 +424,15 @@
                 // console.log(pathLineString);
                 var destPath = d3.geoPath(pathLineString);
                 // console.log(destPath());
-                var thePath = svg.select("#destPath")
+                svg.select("#destPath")
                     .datum(pathLineString)
                     .attr("d", path);
                 // console.log(currentTroop.data()[0].loc);
                 // console.log(currentTroop.data()[0].dest);
             }
         }
-        
+    }
+    function mouseup() {
         if (m0) {
             mousemove();
             m0 = null;
@@ -443,11 +459,8 @@
         position_labels();
     }
     function updateResource(resourcePoints){
-        svg.selectAll(".resource")
-            .data([])
-            .exit()
-            .remove();
-        svg.select(".resources").selectAll("path")
+        // Data join.
+        var resources = svg.selectAll(".resource")
             .data(function(){
                 var resourceCircle = [];
                 resourcePoints.forEach(function(d){
@@ -455,9 +468,9 @@
                     resourceCircle.push(r);
                 });
                 return resourceCircle;
-            })
-            .enter()
-            .append("path")
+            });
+        // Append new and merge.
+        resources.enter().append("path")
             .attr("class", "resource")
             .attr("fill", "red")
             .style("fill-opacity", "0.2")
@@ -465,25 +478,18 @@
             .style("stroke-opacity", 0.4)
             .style("stroke-width", 1)
             .style("stroke-dasharray", "5, 5")
+        .merge(resources)
             .attr("d", path);
+        // Remove excess elements.
+        resources.exit().remove();
     }
     function updateTroop(selfTroops, otherTroops){
-        thisCountry = selfTroops.Nation;
         // Update checkbox.
         d3.select("#friendOrEnemyContainer").selectAll("input")
-            .filter(function(d) { return d == thisCountry}).property("disabled", "true")
-        // Update self troop.
-        var troopFogList = [];
-        selfTroops.Troops.forEach(function(d){
-            var fogCircleMask = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.fogR);
-            troopFogList.push(fogCircleMask());
-        });
-        svg.selectAll(".attackRange")
-            .data([])
-            .exit()
-            .remove();
-        // attack Range
-        svg.select("#myTroopGroup")
+            .filter(function(d) { return d == selfTroops.Nation}).property("disabled", "true")
+        
+        // Data join.
+        var attackRange = svg.select("#myTroopGroup")
             .selectAll("path")
             .data(function(){
                 var aryAttackR = [];
@@ -492,30 +498,24 @@
                     aryAttackR.push(attackRCircle);
                 });
                 return aryAttackR;
-            })
-            .enter()
-            .append("path")
-            .attr("d", path)
+            });
+        // Append new data, merge, and update.
+        attackRange.enter().append("path")
             .attr("class", "attackRange")
-            .style("fill", "turquoise")
-            .style("opacity", 0.3);
-        svg.selectAll(".myTroop")
-            .data([])
-            .exit()
-            .remove();
-        svg.select("#myTroopGroup")
+        .merge(attackRange)
+        .attr("d", path);
+        // Remove excess element.
+        attackRange.exit().remove();
+
+        var myTroops = svg.select("#myTroopGroup")
             .selectAll("image")
-            .data(selfTroops.Troops)
-            .enter()
+            .data(selfTroops.Troops);
+        myTroops.enter()
             .append("image")
-            .attr("href", thisCountry + ".png")
+            .attr("href", selfTroops.Nation + ".png")
             .attr("class", "myTroop")
             .attr("height", 10)
             .attr("width", 10)
-            .attr("transform", function(d){
-                var output = "translate(-" + (d.fogR/2) + ",-" + (d.fogR/2) + ")"
-                return output;
-            })
             .property("selected", false)
             .on("mousedown", function(data, index){
                 // Reset all selected forall other nodes.
@@ -554,12 +554,7 @@
                         .attr("opacity", 1);
                 }
                 else {
-                    svg.select("#destDot")
-                        .datum(emptyGeoCircle)
-                        .attr("d", path);
-                    svg.select("#destPath")
-                        .datum(emptyGeoLineString)
-                        .attr("d", path);
+                    setSelectedAsNone();
                 }
                 if (currentTroop.property("selected")) {
                     var src = currentTroop.data()[0];
@@ -605,7 +600,12 @@
                 toolTip.transition()        
                     .duration(500)      
                     .style("opacity", 0);
-            });
+            })
+            .attr("transform", function(d){
+                var output = "translate(-" + (d.fogR/2) + ",-" + (d.fogR/2) + ")"
+                return output;
+            })
+            .merge(myTroops);
         // Update currentTroop.
         if (currentTroop != null) {
             var countryName = currentTroop.data()[0].country;
@@ -642,36 +642,34 @@
             }
         }
         // Update fog of war.
-        svg.selectAll(".fogMasksSelf")
+        var fogSelf = svg.selectAll(".fogMasksSelf")
             .selectAll("path")
-            .data([])
-            .exit()
-            .remove();
-        svg.selectAll(".fogMasksSelf")
-            .selectAll("path")
-            .data(troopFogList)
-            .enter()
+            .data(function(){
+                // Extract info for selfTroops fog.
+                var troopFogList = [];
+                selfTroops.Troops.forEach(function(d){
+                    var fogCircleMask = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.fogR);
+                    troopFogList.push(fogCircleMask());
+                });
+                return troopFogList;
+            });
+        fogSelf.enter()
             .append("path")
-            .attr("d", path)
             .attr("class", "fogMask")
-            .style("fill", "black");
+            .style("fill", "black")
+        .merge(fogSelf)
+            .attr("d", path);
+        fogSelf.exit().remove();
         // Update other troop.
-        svg.selectAll(".notMyTroop")
-            .data([])
-            .exit()
-            .remove();
-        svg.select("#otherTroopGroup")
-            .append("g")
+        var otherTroop = svg.select("#otherTroopGroup")
             .selectAll("image")
-            .data(otherTroops.Troops)
-            .enter()
+            .data(otherTroops.Troops);
+        otherTroop.enter()
             .append("image")
             .attr("href", function(d){
                 return d.country + ".png";
             })
             .attr("class", "notMyTroop")
-            .attr("x", function(d){return proj(d.loc)[0]})
-            .attr("y", function(d){return proj(d.loc)[1]})
             .attr("height", 10)
             .attr("width", 10)
             .attr("transform", "translate(-5,-5)")
@@ -694,7 +692,8 @@
                 toolTip.transition()        
                     .duration(500)      
                     .style("opacity", 0);
-            });
+            })
+            .merge(otherTroop);
         // Refresh display.
         refresh();
     }
