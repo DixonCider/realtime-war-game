@@ -59,7 +59,7 @@
     // Append group for containing hover info.
     var toolTip = body.append("div")
         .style("opacity", 0);
-    var totalCountryList = ["DPRK", "USA", "Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
+    const totalCountryList = ["DPRK", "USA", "Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
     /*
     var createContainer = d3.select("body").append("div")
         .style("position", "absolute")
@@ -702,7 +702,7 @@
     let countryData = {};
     let otherData = {};
     const myCountry = 'DPRK';
-    const serverURL = 'http://192.168.1.212:8000/api';
+    const serverURL = 'http://rootn.rocks:8000/api';
 
     
     $.get(`${serverURL}/getMyTroops`, {country: myCountry} , function (data, status) {
