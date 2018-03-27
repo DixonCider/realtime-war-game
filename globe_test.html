@@ -4,23 +4,28 @@
     <link rel="stylesheet" type="text/css" href="styling.css">
 </head>
 <body>
-    <h1>FONNGMUN</h1>
-    <p>Round 1 Current Time: 10:00</p>
-    <div class="techtree">
-        <button class="ctrl-standard fx-bubbleUp">Tech<br>Tree</button>
-    </div>
-    <div class="logout"> 
-         <button class="ctrl-standard fx-bubbleDown">Log<br>Out</button>
-    </div>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/queue.v1.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
-
-    // console.log(screen.width);
-
+    var body = d3.select("body");
+    body.append("h1")
+        .html("FONNGMUN");
+    body.append("p")
+        .attr("id","timerP")
+        .html("Round 1 Current Time: 10:00");
+    body.append("div")
+        .attr("class","techtree")
+        .append("button")
+        .attr("class","ctrl-standard fx-bubbleUp")
+        .html("Tech<br>Tree");
+    body.append("div")
+        .attr("class","logout")
+        .append("button")
+        .attr("class","ctrl-standard fx-bubbleDown")
+        .html("Log<br>Out");
     d3.select(window)
         .on("mousemove", mousemove)
         .on("mouseup", mouseup);
@@ -44,7 +49,7 @@
     var graticule = d3.geo.graticule();
     // graticule -> vertical and horizontal grid lines 
     // -> returns a GeoJSON MultiLineString Geometry object representing all meridians and parallels
-    var svg = d3.select("body").append("svg")
+    var svg = body.append("svg")
         .attr("width", width)
         .attr("height", height)
         .attr("x", 0)
@@ -52,7 +57,7 @@
         .attr("position", "absolute")
         .on("mousedown", mousedown);
     // Append group for containing hover info.
-    var toolTip = d3.select("body").append("div")
+    var toolTip = body.append("div")
         .style("opacity", 0);
     var totalCountryList = ["DPRK", "USA", "Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
     /*
@@ -67,7 +72,7 @@
         .attr("type", "checkbox")
         .attr("id", "CreateMode");
     */
-    var friendOrEnemyCheckbox = d3.select("body").append("div")
+    var friendOrEnemyCheckbox = body.append("div")
         .attr("id", "friendOrEnemyContainer")
         .style("color", "white")
         .style("position", "absolute")
@@ -109,6 +114,7 @@
         "coordinates": [ [0,0], [0,0] ]
     };
     var thisCountry = null;
+    /*
     var vision = class vision {
         constructor(id, lat, lon, r){
             this.lat = lat;
@@ -144,7 +150,7 @@
             }
         }
     }
-
+    */
     var currentTroop = null;
 
     function ready(error, world, places) {
