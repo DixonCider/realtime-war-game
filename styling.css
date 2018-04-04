@@ -274,3 +274,65 @@ th {
     border-radius: 8px;         
     pointer-events: none;   
 }
+.action-button
+{
+  transition: all 0.1s; /*the speed of transition: here is active*/
+  -webkit-transition: all 0.1s; /*for safari*/
+  position: relative;
+  padding: 10px 15px;
+    margin: 0px 10px 10px 0px;
+    /*width: 100px;*/
+    /*margin: auto;*/
+    float: left;
+  border-radius: 5px;
+  font-family: 'Pacifico', cursive;
+  font-size: 25px;
+  color: #FFF;
+  text-decoration: none;  
+}
+
+.action-button:active
+{
+  transform: translate(0px,5px); /*move downward(y-axis) for 5px: stimulate press*/
+    -webkit-transform: translate(0px,5px);
+  border-bottom: 1px solid; /*make the shadow disappear*/
+}
+
+.blue
+{
+  background-color: #3498DB;
+  border-bottom: 5px solid #2980B9;
+  text-shadow: 0px -2px #2980B9;
+}
+
+.red
+{
+  background-color: #E74C3C;
+  border-bottom: 5px solid #BD3E31;
+  text-shadow: 0px -2px #BD3E31;
+}
+
+.money
+{
+  background-color: #ffffff;
+  color: black;
+  position: relative;
+  padding: 5px 30px;
+    margin: 0px 10px 10px 0px;
+    /*width: 120px;*/
+    /*margin: auto;*/
+    float: left;
+  font-family: 'Pacifico', cursive;
+  font-size: 30px;
+  /*border:solid;*/
+  text-align: center;
+}
+
+.bar
+{
+  width: 80%;
+  margin: auto;
+  text-align: center;
+  padding: 10px 10px;
+  /*border:solid;*/
+}

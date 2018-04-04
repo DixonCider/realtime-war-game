@@ -3,6 +3,7 @@
 <head>
     <link rel="stylesheet" type="text/css" href="styling.css">
     <link rel="stylesheet" type="text/css" href="switch.css">
+    <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
 </head>
 <body>
     <script src="http://d3js.org/d3.v5.min.js"></script>
@@ -17,9 +18,9 @@
     var body = d3.select("body");
     body.append("h1")
         .html("FONGMUN");
-    body.append("p")
-        .attr("id","timerP")
-        .html("Round 1 Current Time: 10:00");
+    // body.append("p")
+    //     .attr("id","timerP")
+    //     .html("Round 1 Current Time: 10:00");
     body.append("div")
         .attr("class","techtree")
         .append("button")
@@ -172,11 +173,13 @@
         .style("display", "none")
         .style("position", "absolute")
         .style("background-image", "url('navy.jpg')")
+        .style("border-style", "inset")
+        .style("border-width", "3px")
         .style("top", "50px")
         .style("left", (screen.width - techWidth)/2 + "px")
         .style("width", techWidth+"px")
         .style("height", techHeight+"px")
-        .attr("id", "techTreeDiv")
+        .attr("id", "techTreeDiv");
     var svgTechNuclear = svgTechDiv.append("div")
         .style("position", "absolute")
         .append("span")
@@ -189,7 +192,33 @@
         .attr("id", "switch2")
         .attr("type", "checkbox")
         .on("change", function(){
-            console.log(d3.select(this).property("checked"));
+            setTimeout(function(){
+                if (d3.select("#switch2").property("checked")) {
+                    d3.select("#switch2").property("checked", true);
+                    var destroyCountry = prompt("Enter the target country:");
+                    if (destroyCountry == null || destroyCountry == "") {
+                        d3.select("#switch2").property("checked", false);
+                        alert("Attack cancelled");
+                    }
+                    else if (!totalCountryList.includes(destroyCountry) || destroyCountry == myCountry){
+                        d3.select("#switch2").property("checked", false);
+                        alert("Invalid country");
+                    } 
+                    else {
+                        $.post(
+                            `${serverURL}/NUKE`, {
+                                "country": myCountry,
+                                "target": destroyCountry
+                            }
+                        );
+                        alert("Destroyed " + destroyCountry);
+                        setTimeout(function(){
+                            d3.select("#switch2").property("checked", false);
+                        }, 2000);
+                    }
+                    
+                }
+            },500);
         });
     svgTechNuclear.append("label")
         .attr("for", "switch2");
@@ -588,7 +617,7 @@
     }
     function updateResource(resourcePoints){
         // Data join.
-        var resources = svg.selectAll(".resource")
+        var resources = svg.select(".resources").selectAll(".resource")
             .data(function(){
                 var resourceCircle = [];
                 resourcePoints.forEach(function(d){
@@ -608,7 +637,14 @@
             .style("stroke-width", 1)
             .style("stroke-dasharray", "5, 5")
             .on("mousedown", function(d, i){
-                console.log(d);
+                if (currentTroop == null) {
+                    $.post(
+                        `${serverURL}/mineResource`, {
+                            "country": myCountry,
+                            "resourceID": d.id
+                        }
+                    );
+                }
             })
             .on("mouseover", function(d){
                 toolTip.attr("class", "toolTipResource")
@@ -857,7 +893,7 @@
                     .style("opacity", 0);
             })
             .merge(otherTroop);
-        
+        otherTroop.exit().remove();
         // Refresh display.
         refresh();
         
@@ -904,19 +940,20 @@
     }, 1000);
     function updateTechTree(){
         $.get(`${serverURL}/techTree`, {country: myCountry} , function (data, status) {
-            root = d3.hierarchy(spaghetti2Tree(data.techTree), function(d) { return d.children; });
+            root = d3.hierarchy(spaghetti2Tree(data), function(d) { return d.children; });
             root.x = 200;
             root.y = 200;
             update(root);
             //spaghetti2Tree(data.techTree.atk);
         });
         function spaghetti2Tree(data){
-            var nuclear = {
-                "name": "Nuclear",
-                "children": []
-            };
-            for(var category in data){
-                var info = data[category];
+
+            var nuclear = data.nuclear;
+            nuclear.children = [];
+            nuclear.category = "Atk";
+            nuclear.effect = "INFINITY";
+            for(var category in data.techTree){
+                var info = data.techTree[category];
                 var obj = null;
                 info.forEach(function(d){
                     if (obj == null) { 
@@ -952,7 +989,7 @@ function update(source) {
 
     // Normalize for fixed-depth.
     nodes.forEach(function(d){ 
-        d.y = - d.depth * 180 * 0.2;
+        d.y = - d.depth * 120 * 0.4;
     });
 
     // ****************** Nodes section ***************************
@@ -973,12 +1010,12 @@ function update(source) {
         .on('mouseout', toolTipClose);
 
     // Add labels for the nodes
-    nodeEnter.append('text')
-        .attr("dy", ".35em")
-        .attr("x", -8)
-        .attr("text-anchor", "end")
-        .text(function(d) { return d.data.name; })
-        .style("color", "#ffffff");
+    // nodeEnter.append('text')
+    //     .attr("dy", ".35em")
+    //     .attr("x", -8)
+    //     .attr("text-anchor", "end")
+    //     .text(function(d) { return d.data.name; })
+    //     .style("color", "#ffffff");
 
     // UPDATE
     var nodeUpdate = nodeEnter.merge(node);
@@ -993,15 +1030,15 @@ function update(source) {
         .attr('cursor', 'pointer')
         .attr('href', function(d){
             if (d.data.developed == true) {
-                return 'japan' + '.png';
+                return 'icons/' + d.data.name + '_color' + '.jpg'; 
             }
             else
             {
-                return 'mexico' + '.png';
+                return 'icons/' + d.data.name + '_grey' + '.jpg';
             }
         })
-        .attr('width', 10)
-        .attr('height', 10);
+        .attr('width', 45)
+        .attr('height', 45);
 
 
     // Remove any exiting nodes
@@ -1039,8 +1076,18 @@ function update(source) {
     // Toggle children on click.
     function click(d) {
         if (!d.data.developed) {
-            // Post request to update.
-            $.get(`${serverURL}/developeTech`, { country: myCountry, tech: d.data.name, type: d.data.category });
+            if (d.data.name == "nuclear") {
+                console.log(d.data.name);
+                $.post(
+                    `${serverURL}/developeNuke`, {
+                        "country": myCountry
+                    }
+                );
+            }
+            else{
+                // Post request to update.
+                $.get(`${serverURL}/developeTech`, { country: myCountry, tech: d.data.name, type: d.data.category });
+            }
             // Update.
             setTimeout(updateTechTree, 500);
         }
@@ -1059,7 +1106,9 @@ function toolTipShow(d) {
         str += "<br/>";
         str += "Cost: ";
         for (var properties in d.cost) {
-            str += properties + ' ' + d.cost[properties] + ' ';
+            if (d.cost[properties] != 0) {
+                str += properties + ' ' + d.cost[properties] + ' ';
+            }
         }
         str += "<br/>";
         return str;
