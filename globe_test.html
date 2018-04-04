@@ -2,10 +2,12 @@
 <meta charset="utf-8">
 <head>
     <link rel="stylesheet" type="text/css" href="styling.css">
+    <link rel="stylesheet" type="text/css" href="switch.css">
 </head>
 <body>
     <script src="http://d3js.org/d3.v5.min.js"></script>
     <script src="http://d3js.org/topojson.v3.min.js"></script>
+    <script src="https://d3js.org/d3-array.v1.min.js"></script>
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
@@ -14,7 +16,7 @@
     <script>
     var body = d3.select("body");
     body.append("h1")
-        .html("FONNGMUN");
+        .html("FONGMUN");
     body.append("p")
         .attr("id","timerP")
         .html("Round 1 Current Time: 10:00");
@@ -22,7 +24,17 @@
         .attr("class","techtree")
         .append("button")
         .attr("class","ctrl-standard fx-bubbleUp")
-        .html("Tech<br>Tree");
+        .html("Tech<br>Tree")
+        .on("mousedown", function(d){
+            d3.select("#techTreeDiv").style("display", function(){
+                if (d3.select("#techTreeDiv").style("display") == "none") {
+                    return "block";
+                }
+                else{
+                    return "none";
+                }
+            });
+        });
     body.append("div")
         .attr("class","logout")
         .append("button")
@@ -37,7 +49,19 @@
                 setSelectedAsNone();
             }
         });
-
+    body.append("div")
+        .style("position", "absolute")
+        .style("bottom", "400px")
+        .style("left", "20px")
+        .append("button")
+        .html("Buy<br>Troops")
+        .on("click", function(){
+            $.post(
+                `${serverURL}/addTroop`, {
+                    "country": myCountry
+                }
+            );
+        })
     // var width = 960, height = 500;
     var width = screen.width * 0.95, height = screen.height * 0.95;
 
@@ -57,7 +81,7 @@
     var graticule = d3.geoGraticule();
     // graticule -> vertical and horizontal grid lines 
     // -> returns a GeoJSON MultiLineString Geometry object representing all meridians and parallels
-    var svg = body.append("svg")
+    var svg = body.append("div").append("svg")
         .attr("width", width)
         .attr("height", height)
         .attr("x", 0)
@@ -65,9 +89,8 @@
         .attr("position", "absolute")
         .on("mousedown", mousedown)
         .on("mouseup", moveDestination);
-    // Append group for containing hover info.
-    var toolTip = body.append("div")
-        .style("opacity", 0);
+
+    
     const totalCountryList = ["DPRK", "USA", "Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
     /*
     var createContainer = d3.select("body").append("div")
@@ -88,7 +111,7 @@
         .style("bottom", "20px")
         .style("left", "20px")
         .property("innerHTML", "Enemy List")
-        .selectAll("input")
+        .selectAll("div")
         .data(totalCountryList)
         .enter()
         .append("div");
@@ -102,15 +125,108 @@
                 }
             });
             // Send request to change enemyList
-            // d is the name of the changed country
-            // this.checked == isEnemy
-            // thisCountry is this country
+            $.post(
+                `${serverURL}/updateEnemy`, {
+                    "country": myCountry,
+                    "enemy": checkedList
+                }
+            );
+            // Update enemyList
+            $.get(`${serverURL}/enemyList`, { country: myCountry}, function (data, status) {
+                d3.select("#friendOrEnemyContainer").selectAll("input")
+                    .filter(function (d) { 
+                        return data.includes(d);
+                    })
+                    .property("checked", true);
+            });
         });
     friendOrEnemyCheckbox.append("label")
         .style("color", "white")
         .property("innerHTML", function(d){
             return d;
         });
+
+    var resourceMonitor = body.append("div")
+        .style("color", "white")
+        .style("position", "absolute")
+        .style("left", "20px")
+        .style("bottom", "250px")
+        .attr("id", "resourceMonitor");
+    // Set the dimensions and margins of the diagram
+    var margin = {top: 20, right: 90, bottom: 30, left: 90},
+        techWidth = 960 - margin.left - margin.right,
+        techHeight = 500 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    // appends a 'group' element to 'svg'
+    // moves the 'group' element to the top left margin
+    var svgTechDiv = d3.select("body").append("div")
+        .attr("class", "techTree")
+        .style("display", "none")
+        .style("position", "absolute")
+        .style("background-image", "url('navy.jpg')")
+        .style("top", "50px")
+        .style("left", (screen.width - techWidth)/2 + "px")
+        .style("width", techWidth+"px")
+        .style("height", techHeight+"px")
+        .attr("id", "techTreeDiv")
+    var svgTechNuclear = svgTechDiv.append("div")
+        .style("position", "absolute")
+        .append("span")
+        .attr("class", "switch")
+        .append("span")
+        .attr("class", "switch-border1")
+        .append("span")
+        .attr("class", "switch-border2");
+    svgTechNuclear.append("input")
+        .attr("id", "switch2")
+        .attr("type", "checkbox")
+        .on("change", function(){
+            console.log(d3.select(this).property("checked"));
+        });
+    svgTechNuclear.append("label")
+        .attr("for", "switch2");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-top");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-shadow");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-left");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-right");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-top");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-bottom");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-base");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-led switch-led-green")
+        .append("span")
+        .attr("class", "switch-led-border")
+        .append("span")
+        .attr("class", "switch-led-light")
+        .append("span")
+        .attr("class", "switch-led-glow");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-led switch-led-red")
+        .append("span")
+        .attr("class", "switch-led-border")
+        .append("span")
+        .attr("class", "switch-led-light")
+        .append("span")
+        .attr("class", "switch-led-glow");
+    var svgTech = svgTechDiv.append("svg")
+        .attr("width", techWidth + margin.right + margin.left)
+        .attr("height", techHeight + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate("
+              + (techWidth * 0.5) + "," + (techHeight * 0.8) + ")");
+    // Append group for containing hover info.
+    var toolTip = body.append("div")
+        .style("opacity", 0);
     // asynchronous task assignment.
     d3.queue()
         .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
@@ -328,6 +444,7 @@
         svg.append("g")
             .attr("id", "otherTroopGroup");
         position_labels();
+        updateTechTree();
     }
     function position_labels() { //how labels chage their angle
         var centerPos = proj.invert([width/2,height/2]);
@@ -410,6 +527,7 @@
                         data: currentTroop.data()[0]
                     }
                 )
+                console.log(currentTroop.data()[0]);
                 var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
                 svg.select("#destDot")
                     .datum(destDot)
@@ -478,6 +596,9 @@
             .style("stroke-opacity", 0.4)
             .style("stroke-width", 1)
             .style("stroke-dasharray", "5, 5")
+            .on("mousedown", function(d, i){
+                console.log(i);
+            })
         .merge(resources)
             .attr("d", path);
         // Remove excess elements.
@@ -503,10 +624,12 @@
         attackRange.enter().append("path")
             .attr("class", "attackRange")
         .merge(attackRange)
-        .attr("d", path);
+        .attr("d", function(d){
+            return path(d);
+        });
         // Remove excess element.
         attackRange.exit().remove();
-
+        
         var myTroops = svg.select("#myTroopGroup")
             .selectAll("image")
             .data(selfTroops.Troops);
@@ -606,6 +729,7 @@
                 return output;
             })
             .merge(myTroops);
+
         // Update currentTroop.
         if (currentTroop != null) {
             var countryName = currentTroop.data()[0].country;
@@ -641,6 +765,7 @@
                     .attr("d", path);
             }
         }
+
         // Update fog of war.
         var fogSelf = svg.selectAll(".fogMasksSelf")
             .selectAll("path")
@@ -648,7 +773,7 @@
                 // Extract info for selfTroops fog.
                 var troopFogList = [];
                 selfTroops.Troops.forEach(function(d){
-                    var fogCircleMask = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.fogR);
+                    var fogCircleMask = d3.geoCircle().center(d.loc).radius(d.fogR);
                     troopFogList.push(fogCircleMask());
                 });
                 return troopFogList;
@@ -660,6 +785,8 @@
         .merge(fogSelf)
             .attr("d", path);
         fogSelf.exit().remove();
+        
+        
         // Update other troop.
         var otherTroop = svg.select("#otherTroopGroup")
             .selectAll("image")
@@ -694,33 +821,216 @@
                     .style("opacity", 0);
             })
             .merge(otherTroop);
+        
         // Refresh display.
         refresh();
+        
     }
 
     let countryData = {};
     let otherData = {};
     const myCountry = 'DPRK';
     const serverURL = 'http://rootn.rocks:8000/api';
-
     
-    $.get(`${serverURL}/getMyTroops`, {country: myCountry} , function (data, status) {
+    setInterval(function(){
+        $.get(`${serverURL}/getMyTroops`, { country: myCountry}, function (data, status) {
             countryData = data.countryData;
             otherData = data.otherData;
             updateTroop(data.countryData, data.otherData)
-            setTimeout(gameLoop, 100);
         });
-
-    function gameLoop() {
-        // console.log(countryData.Troops.filter(troop => troop.id == 24)[0].dest)
-        const myTroops = svg.selectAll(".myTroop").data()
-        myCountry.Troops = myTroops
-        // console.log(myTroops.filter(troop => troop.id == 20)[0].dest)
-        $.post(`${serverURL}/update`, { country: myCountry, data: JSON.stringify({ countryData, otherData}) }, function (data, status) {
-            updateTroop(data.countryData, data.otherData)
-            setTimeout(gameLoop, 1000);
-         });
-     }
-    
+        $.get(`${serverURL}/resource`, {country: myCountry} , function (data, status) {
+            var aryResource = [];
+            for (var r in data.resource) {
+                var tmp = {};
+                tmp.category = r;
+                tmp.value = data.resource[r];
+                aryResource.push(tmp);
+            }
+            var join = d3.select("#resourceMonitor").selectAll("div").data(aryResource);
+            var enter = join.enter()
+                .append ("div")
+                .append("span")
+                .merge(join)
+                .html(function(d){
+                    return d.category + ':' + d.value;
+                });
+            enter.exit().remove();
+        });
+        $.get(`${serverURL}/resourcePoint`, function (data, status) {
+            
+        });
+    }, 1000);
+    function updateTechTree(){
+        $.get(`${serverURL}/techTree`, {country: myCountry} , function (data, status) {
+            root = d3.hierarchy(spaghetti2Tree(data.techTree), function(d) { return d.children; });
+            root.x = 200;
+            root.y = 200;
+            update(root);
+            //spaghetti2Tree(data.techTree.atk);
+        });
+        function spaghetti2Tree(data){
+            var nuclear = {
+                "name": "Nuclear",
+                "children": []
+            };
+            for(var category in data){
+                var info = data[category];
+                var obj = null;
+                info.forEach(function(d){
+                    if (obj == null) { 
+                         obj = d;
+                         obj.category = category;
+                    }
+                    else{
+                        var tmp = d;
+                        tmp.children = [];
+                        tmp.children.push(obj);
+                        obj = tmp;
+                        obj.category = category;
+                    }
+                });
+                nuclear.children.push(obj);
+            }
+            return nuclear;
+        }
+    }
 </script>
+<script>
+// declares a tree layout and assigns the size
+var treemap = d3.tree().size([techHeight, techWidth]).nodeSize([100,100]);
+
+function update(source) {
+    var i = 0
+    // Assigns the x and y position for the nodes
+    var treeData = treemap(root);
+
+    // Compute the new tree layout.
+    var nodes = treeData.descendants(),
+        links = treeData.descendants().slice(1);
+
+    // Normalize for fixed-depth.
+    nodes.forEach(function(d){ 
+        d.y = - d.depth * 180 * 0.2;
+    });
+
+    // ****************** Nodes section ***************************
+
+    // Update the nodes...
+    var node = svgTech.selectAll('g.node')
+        .data(nodes, function(d) {return d.id || (d.id = ++i); });
+
+    // Enter any new modes at the parent's previous position.
+    var nodeEnter = node.enter().append('g')
+        .attr('class', 'node');
+
+    // Add Circle for the nodes
+    nodeEnter.append('image')
+        .attr('class', 'node')
+        .on('click', click)
+        .on('mouseover', toolTipShow)
+        .on('mouseout', toolTipClose);
+
+    // Add labels for the nodes
+    nodeEnter.append('text')
+        .attr("dy", ".35em")
+        .attr("x", -8)
+        .attr("text-anchor", "end")
+        .text(function(d) { return d.data.name; })
+        .style("color", "#ffffff");
+
+    // UPDATE
+    var nodeUpdate = nodeEnter.merge(node);
+
+    // Transition to the proper position for the node
+    nodeUpdate.attr("transform", function(d) { 
+        return "translate(" + (d.x - 5) + "," + (d.y - 5) + ")";
+    });
+
+    // Update the node attributes and style
+    nodeUpdate.select('image.node')
+        .attr('cursor', 'pointer')
+        .attr('href', function(d){
+            if (d.data.developed == true) {
+                return 'japan' + '.png';
+            }
+            else
+            {
+                return 'mexico' + '.png';
+            }
+        })
+        .attr('width', 10)
+        .attr('height', 10);
+
+
+    // Remove any exiting nodes
+    var nodeExit = node.exit().remove();
+
+    // ****************** links section ***************************
+
+    // Update the links...
+    var link = svgTech.selectAll('path.link')
+        .data(links, function(d) { return d.id; });
+
+    // Enter any new links at the parent's previous position.
+    var linkEnter = link.enter().insert('path', "g")
+        .attr("class", "link");
+
+    // UPDATE
+    var linkUpdate = linkEnter.merge(link);
+
+    // Transition back to the parent element position
+    linkUpdate.attr('d', function(d){ return diagonal(d, d.parent) });
+
+    // Remove any exiting links
+    var linkExit = link.exit().remove();
+
+    // Creates a curved (diagonal) path from parent to the child nodes
+    function diagonal(s, d) {
+
+        var p = `M ${s.x} ${s.y}
+            C ${(s.x + d.x) / 2} ${s.y},
+                ${(s.x + d.x) / 2} ${d.y},
+                ${d.x} ${d.y}`
+        return p;
+    }
+
+    // Toggle children on click.
+    function click(d) {
+        if (!d.data.developed) {
+            // Post request to update.
+            $.get(`${serverURL}/developeTech`, { country: myCountry, tech: d.data.name, type: d.data.category });
+            // Update.
+            setTimeout(updateTechTree, 500);
+        }
+    }
+}
+// Tooltip Ccontrol.
+function toolTipShow(d) {
+    d = d.data;
+    toolTip.attr("class", 'toolTipTechtree')
+        .transition()
+        .duration(100)
+        .style("opacity", 0.9);
+    toolTip.html(function(){
+        var str = d.name + "<br/>";
+        str += d.category + ' x' + d.effect;
+        str += "<br/>";
+        str += "Cost: ";
+        for (var properties in d.cost) {
+            str += properties + ' ' + d.cost[properties] + ' ';
+        }
+        str += "<br/>";
+        return str;
+    })
+    .style("left", (d3.event.pageX) + "px")
+    .style("top", (d3.event.pageY - 42) + "px");  
+}
+function toolTipClose(d) {
+    toolTip.transition()
+        .duration(100)
+        .style("opacity", 0);
+}
+
+</script>
+
 </body>
