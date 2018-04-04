@@ -18,9 +18,9 @@
     var body = d3.select("body");
     body.append("h1")
         .html("FONGMUN");
-    // body.append("p")
-    //     .attr("id","timerP")
-    //     .html("Round 1 Current Time: 10:00");
+    body.append("h1")
+        .style("top", "80px")
+        .html("Korean War");
     body.append("div")
         .attr("class","techtree")
         .append("button")
@@ -181,6 +181,8 @@
         .style("height", techHeight+"px")
         .attr("id", "techTreeDiv");
     var svgTechNuclear = svgTechDiv.append("div")
+        .attr("id", "nuclearDiv")
+        .style("opacity", "0")
         .style("position", "absolute")
         .append("span")
         .attr("class", "switch")
@@ -211,8 +213,8 @@
                                 "target": destroyCountry
                             }
                         );
-                        alert("Destroyed " + destroyCountry);
                         setTimeout(function(){
+                            alert("Destroyed " + destroyCountry);
                             d3.select("#switch2").property("checked", false);
                         }, 2000);
                     }
@@ -259,7 +261,7 @@
         .attr("height", techHeight + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate("
-              + (techWidth * 0.5) + "," + (techHeight * 0.8) + ")");
+              + (techWidth * 0.5) + "," + (techHeight * 0.85) + ")");
     // Append group for containing hover info.
     var toolTip = body.append("div")
         .style("opacity", 0);
@@ -783,13 +785,15 @@
                     .duration(200)
                     .style("opacity", 0.9);
                 toolTip.html(function(){
-                        var str = "#" + d.id + "<br/>"
+                        var str = myCountry + " #" + d.id + "<br/>"
                                 + "AD: " + Math.round(d.size * d.unitAD) + "<br/>"
                                 + "HP: " + Math.round(d.size * d.unitHP) + "<br/>";
                         return str;
                     })
                     .style("left", (d3.event.pageX) + "px")
-                    .style("top", (d3.event.pageY - 42) + "px");    
+                    .style("top", (d3.event.pageY - 42) + "px")
+                    .style("height", 14*3 + "px")
+                    .style("width", "80px");    
             })
             .on("mouseout", function(){
                 toolTip.transition()        
@@ -878,14 +882,16 @@
                     .duration(200)
                     .style("opacity", 0.9);
                 toolTip.html(function(){
-                        var str = d.country + "<br/>"
+                        var str = d.country + " "
                                 + "#" + d.id + "<br/>"
                                 + "AD: " + d.AD + "<br/>"
                                 + "HP: " + d.HP + "<br/>";
                         return str;
                     })
                     .style("left", (d3.event.pageX + 15) + "px")
-                    .style("top", (d3.event.pageY - 40) + "px");    
+                    .style("top", (d3.event.pageY - 40) + "px")
+                    .style("height", 14*3 + "px")
+                    .style("width", "80px");  
             })
             .on("mouseout", function(){
                 toolTip.transition()        
@@ -940,6 +946,11 @@
     }, 1000);
     function updateTechTree(){
         $.get(`${serverURL}/techTree`, {country: myCountry} , function (data, status) {
+            if (data.nuclear.developed) {
+                d3.select("#nuclearDiv").transition()
+                    .duration(1000)
+                    .style("opacity", "1");
+            }
             root = d3.hierarchy(spaghetti2Tree(data), function(d) { return d.children; });
             root.x = 200;
             root.y = 200;
@@ -947,7 +958,6 @@
             //spaghetti2Tree(data.techTree.atk);
         });
         function spaghetti2Tree(data){
-
             var nuclear = data.nuclear;
             nuclear.children = [];
             nuclear.category = "Atk";
@@ -1022,7 +1032,7 @@ function update(source) {
 
     // Transition to the proper position for the node
     nodeUpdate.attr("transform", function(d) { 
-        return "translate(" + (d.x - 5) + "," + (d.y - 5) + ")";
+        return "translate(" + (d.x - 22.5) + "," + (d.y - 5) + ")";
     });
 
     // Update the node attributes and style
