@@ -54,7 +54,8 @@
         .style("bottom", "400px")
         .style("left", "20px")
         .append("button")
-        .html("Buy<br>Troops")
+        .style("display", "none")
+        .attr("id", "buyTroopsBtn")
         .on("click", function(){
             $.post(
                 `${serverURL}/addTroop`, {
@@ -152,6 +153,12 @@
         .style("left", "20px")
         .style("bottom", "250px")
         .attr("id", "resourceMonitor");
+    var moneyMonitor = body.append("div")
+        .style("color", "white")
+        .style("position", "absolute")
+        .style("left", "20px")
+        .style("bottom", "380px")
+        .attr("id", "moneyMonitor");
     // Set the dimensions and margins of the diagram
     var margin = {top: 20, right: 90, bottom: 30, left: 90},
         techWidth = 960 - margin.left - margin.right,
@@ -320,18 +327,19 @@
         var visionMask = svg.append("defs").append("mask")
             .attr("id", "visionMask");
             
-        visionMask.append("circle")
-            .attr("cx", width / 2).attr("cy", height / 2)
-            .attr("r", proj.scale())
-            .attr("class", "fogMask")
-            .style("fill", "white");
+        // visionMask.append("circle")
+        //     .attr("cx", width / 2).attr("cy", height / 2)
+        //     .attr("r", proj.scale())
+        //     .attr("class", "fogMask")
+        //     .style("fill", "white");
             
-        var fogMotherMaskCircle = d3.geoCircle().center([0, 0]).radius(180)();
+        var fogMotherMaskCircle = d3.geoCircle().center([0, 0]).radius(179.9)();
         visionMask.append("path")
             .datum(fogMotherMaskCircle)
             .attr("class", "fogMask")
             .style("fill", "white")
             .attr("d", path);
+
         visionMask.append("g")
             .attr("class", "fogMasksSelf");
         visionMask.append("g")
@@ -407,8 +415,8 @@
             .datum(fogCircle)
             .attr("class", "fog")
             .attr("d", path)
-            .attr("fill", "url(#fog)");
-            //.attr("mask", "url(#visionMask)");
+            .attr("fill", "url(#fog)")
+            .attr("mask", "url(#visionMask)");
         // sun shine land brighter
         svg.append("circle")
             .attr("cx", width / 2).attr("cy", height / 2)
@@ -572,7 +580,9 @@
             .attr("y", function(d){return proj(d.loc)[1]});
         svg.select("#destDot").attr("d", path);
         svg.select("#destPath").attr("d", path);
-        svg.select(".resource").attr("d", path);
+        svg.selectAll(".resource").attr("d", function(d){
+                return path(d.path);
+            });
         svg.selectAll(".attackRange").attr("d", path);
         position_labels();
     }
@@ -582,10 +592,11 @@
             .data(function(){
                 var resourceCircle = [];
                 resourcePoints.forEach(function(d){
-                    var r = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.r)();
+                    var r = d3.geoCircle().center(d.loc).radius(d.range)();
                     resourceCircle.push(r);
+                    d.path = r;
                 });
-                return resourceCircle;
+                return resourcePoints;
             });
         // Append new and merge.
         resources.enter().append("path")
@@ -597,10 +608,35 @@
             .style("stroke-width", 1)
             .style("stroke-dasharray", "5, 5")
             .on("mousedown", function(d, i){
-                console.log(i);
+                console.log(d);
+            })
+            .on("mouseover", function(d){
+                toolTip.attr("class", "toolTipResource")
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 0.9);
+                toolTip.style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 42) + "px")
+                    .style("height", function(){
+                        return 14*(Object.keys(d.award).length + 1) + "px";
+                    })
+                    .html(function(){
+                        var str = "Cost: $" + d.cost + "<br/>";
+                        for(var category in d.award){
+                            str += category + ": " + d.award[category] + "<br/>";
+                        }
+                        return str;
+                    });    
+            })
+            .on("mouseout", function(){
+                toolTip.transition()        
+                    .duration(500)      
+                    .style("opacity", 0);
             })
         .merge(resources)
-            .attr("d", path);
+            .attr("d", function(d){
+                return path(d.path);
+            });
         // Remove excess elements.
         resources.exit().remove();
     }
@@ -780,10 +816,10 @@
             });
         fogSelf.enter()
             .append("path")
-            .attr("class", "fogMask")
-            .style("fill", "black")
         .merge(fogSelf)
-            .attr("d", path);
+            .attr("d", path)
+            .attr("class", "fogMask")
+            .style("fill", "black");
         fogSelf.exit().remove();
         
         
@@ -857,7 +893,13 @@
             enter.exit().remove();
         });
         $.get(`${serverURL}/resourcePoint`, function (data, status) {
-            
+            updateResource(data);
+        });
+        $.get(`${serverURL}/countryInfo`, {country: myCountry} , function (data, status) {
+            d3.select("#buyTroopsBtn")
+                .style("display", "block")
+                .html("Buy Troops<br>$" + data.troopCost + " / unit");
+            d3.select("#moneyMonitor").html("Money: "+data.money);
         });
     }, 1000);
     function updateTechTree(){

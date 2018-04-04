@@ -262,3 +262,15 @@ th {
     border-radius: 8px;         
     pointer-events: none;   
 }
+.toolTipResource{
+    position: absolute;         
+    text-align: left;         
+    width: 100px;                    
+    height: 42px; /*14 multiply by 行數 */           
+    padding: 2px;               
+    font: 12px sans-serif;      
+    background: pink;
+    border: 0px;        
+    border-radius: 8px;         
+    pointer-events: none;   
+}
