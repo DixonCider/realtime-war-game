@@ -12,7 +12,15 @@ const server = {
 
 const users = {
   USA: 'maga',
-  ROK: 'korea',
+  Korea: 'qqqq',
+  DPRK: 'kimisthebest',
+  Russia: 'heilputin',
+  PRC: 'winniethepoo',
+  Japan: 'welovesushi',
+  Mexico: 'breakthatwall',
+  India: 'welovecurrie',
+  Phillipines: 'fucktheworld',
+  Vietnam: 'wemaderice',
 }
 
 const app = express();
