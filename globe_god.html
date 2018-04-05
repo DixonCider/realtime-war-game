@@ -3,8 +3,56 @@
 <head>
     <link rel="stylesheet" type="text/css" href="styling.css">
     <link rel="stylesheet" type="text/css" href="switch.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.6/angular-material.min.css">
+
 </head>
 <body>
+    <h1>FONGMUN</h1>
+    <div id="GodModeDiv" ng-app="fmApp" ng-controller="fmCtrl" style="color: white">
+        <button ng-click="getData()">Load</button>
+        <button ng-click="updateData()">Update</button>
+        <button ng-click="addResource()">Add Resource</button>
+        <lable>Long</lable>
+        <input type="number" ng-model="resource.loc[0]" style="width: 60px">
+        <lable>Lat</lable>
+        <input type="number" ng-model="resource.loc[1]" style="width: 60px">
+        <lable>Cost</lable>
+        <input type="number" ng-model="resource.cost" style="width: 60px">
+        <span ng-repeat="(key, value) in resource.award">
+            <lable>{{key}}</lable><input type="number" ng-model="value" style="width: 60px">
+        </span>
+        <lable>Range</lable>
+        <input type="number" ng-model="resource.range" style="width: 40px">
+        <div ng-repeat="x in ngCountryData" style="padding: 10px; color: white">
+            <lable>Name</lable>
+            <input ng-model="x.name" size="6">
+            <lable>Fog</lable>
+            <input type="number" ng-model="x.troop.fogR" style="width: 40px">
+            <lable>AtkR</lable>
+            <input type="number" ng-model="x.troop.attackR" style="width: 40px">
+            <lable>xAtk</lable>
+            <input type="number" ng-model="x.multipliers.atk" style="width: 40px">
+            <lable>xHP</lable>
+            <input type="number" ng-model="x.multipliers.hp" style="width: 40px">
+            <lable>x$</lable>
+            <input type="number" ng-model="x.multipliers.money" style="width: 40px">
+            <lable>Income</lable>
+            <input type="number" ng-model="x.income" style="width: 60px">
+            <lable>Money</lable>
+            <input type="number" ng-model="x.money" style="width: 80px">
+            <lable>$/troop</lable>
+            <input type="number" ng-model="x.troopCost" style="width: 60px">
+            <lable>Nuclear</lable>
+            <input type="checkbox" ng-model="x.nuclear">
+            <br>
+            <span ng-repeat="(key, value) in x.resource">
+                <lable>{{key}}</lable><input type="number" ng-model="value" style="width: 60px">
+            </span>
+            <span>EnemyList</span>
+            <label ng-repeat="enemy in x.enemyList">{{enemy}}</label>
+        </div>
+    </div>
+
     <script src="http://d3js.org/d3.v5.min.js"></script>
     <script src="http://d3js.org/topojson.v3.min.js"></script>
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
@@ -12,10 +60,63 @@
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
     <script src="https://d3js.org/d3-request.v1.min.js"></script>
     <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+     <!-- AngularJS Material Dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-messages.min.js"></script>
+
+    <!-- AngularJS Material Javascript now available via Google CDN; version 1.1.4 used here -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.6/angular-material.min.js"></script>
+    <script>
+        var app = angular.module("fmApp", []);
+        app.controller("fmCtrl", function($scope, $interval, $timeout, $filter) {
+            $scope.resource = {
+                "loc": [0,0],
+                "cost": 10000,
+                "award": {
+                    "a": 100,
+                    "b": 100,
+                    "c": 100,
+                    "d": 100,
+                    "x": 100,
+                    "y": 100,
+                    "z": 100
+                  },
+                "range": 10
+            };
+            $scope.addResource = function(){
+                $.post(`${serverURL}/addResourcePoint`,JSON.parse(angular.toJson($scope.resource)));
+            }
+            $scope.getData = function(){
+                $.get(`${serverURL}/allCountries`, function (data, status) {
+                    $scope.ngCountryData = data;
+                });
+            }
+            $scope.updateData = function(){
+                // console.log($scope.ngCountryData);
+                var selectCountry = prompt("Enter the target country:");
+                if (selectCountry == null || selectCountry == "") {
+                    alert("update cancelled");
+                }
+                else if (!totalCountryList.includes(selectCountry)){
+                    alert("Invalid country");
+                } 
+                else {
+                    var returnData = JSON.parse(angular.toJson($scope.ngCountryData));
+                    returnData = returnData.find(function(d){ return d.name == selectCountry; });
+                    console.log(returnData);
+                    $.post(`${serverURL}/modCountry`,returnData);
+                    $timeout(function () {
+                        $scope.getData();
+                        alert("Update success");
+                    }, 2000);
+                }
+            }
+        });
+    </script>
     <script>
     var body = d3.select("body");
-    body.append("h1")
-        .html("FONGMUN");
     // body.append("p")
     //     .attr("id","timerP")
     //     .html("Round 1 Current Time: 10:00");
@@ -53,7 +154,7 @@
     var width = screen.width * 0.95, height = screen.height * 0.95;
 
     var proj = d3.geoOrthographic()
-        .scale(300)
+        .scale(height/2)
         .translate([width / 2, height / 2])
         .clipAngle(90);
     var preD, postD, pntD;
@@ -79,22 +180,15 @@
     
     const totalCountryList = ["DPRK", "USA", "Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
     var techWidth = 960, techHeight = 600;
-    var GodMode = body.append("div")
+
+    var GodMode = body.select("#GodModeDiv")
         .style("display", "none")
         .style("position", "absolute")
-        .style("background-color", "white")
-        .style("top", "50px")
-        .style("left", (screen.width - techWidth)/2 + "px")
-        .style("width", techWidth+"px")
-        .style("height", techHeight+"px")
-        .attr("id", "GodModeDiv");
-
-    var resourceMonitor = body.append("div")
-        .style("color", "white")
-        .style("position", "absolute")
-        .style("left", "20px")
-        .style("top", "200px")
-        .attr("id", "resourceMonitor");
+        .style("background-color", "black")
+        .style("top", 0)
+        .style("left", 0)
+        .style("width", screen.width+"px")
+        .style("height", screen.height+"px");
 
     // Append group for containing hover info.
     var toolTip = body.append("div")
@@ -355,20 +449,23 @@
             .attr("y", function(d){return proj(d.loc)[1]});
         svg.select("#destDot").attr("d", path);
         svg.select("#destPath").attr("d", path);
-        svg.selectAll(".resource").attr("d", path);
+        svg.selectAll(".resource").attr("d", function(d){
+                return path(d.path);
+            });
         svg.selectAll(".attackRange").attr("d", path);
         position_labels();
     }
     function updateResource(resourcePoints){
         // Data join.
-        var resources = svg.selectAll(".resource")
+        var resources = svg.select(".resources").selectAll(".resource")
             .data(function(){
                 var resourceCircle = [];
                 resourcePoints.forEach(function(d){
-                    var r = d3.geoCircle().center([d.loc[0], d.loc[1]]).radius(d.r)();
+                    var r = d3.geoCircle().center(d.loc).radius(d.range)();
                     resourceCircle.push(r);
+                    d.path = r;
                 });
-                return resourceCircle;
+                return resourcePoints;
             });
         // Append new and merge.
         resources.enter().append("path")
@@ -379,8 +476,43 @@
             .style("stroke-opacity", 0.4)
             .style("stroke-width", 1)
             .style("stroke-dasharray", "5, 5")
+            .on("mousedown", function(d, i){
+                if (currentTroop == null) {
+                    $.post(
+                        `${serverURL}/mineResource`, {
+                            "country": myCountry,
+                            "resourceID": d.id
+                        }
+                    );
+                }
+            })
+            .on("mouseover", function(d){
+                toolTip.attr("class", "toolTipResource")
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 0.9);
+                toolTip.style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 42) + "px")
+                    .style("height", function(){
+                        return 14*(Object.keys(d.award).length + 1) + "px";
+                    })
+                    .html(function(){
+                        var str = "Cost: $" + d.cost + "<br/>";
+                        for(var category in d.award){
+                            str += category + ": " + d.award[category] + "<br/>";
+                        }
+                        return str;
+                    });    
+            })
+            .on("mouseout", function(){
+                toolTip.transition()        
+                    .duration(500)      
+                    .style("opacity", 0);
+            })
         .merge(resources)
-            .attr("d", path);
+            .attr("d", function(d){
+                return path(d.path);
+            });
         // Remove excess elements.
         resources.exit().remove();
     }
@@ -584,54 +716,16 @@
     let otherData = {};
     const myCountry = 'god';
     const serverURL = 'http://rootn.rocks:8000/api';
-    
-    $.get(`${serverURL}/getMyTroops`, {country: myCountry} , function (data, status) {
-        countryData = data.countryData;
-        otherData = data.otherData;
-        updateTroop(data.countryData, data.otherData)
-        setTimeout(gameLoop, 100);
-    });
 
-    function gameLoop() {
-        // console.log(countryData.Troops.filter(troop => troop.id == 24)[0].dest)
-        // const myTroops = svg.selectAll(".myTroop").data()
-        // myCountry.Troops = myTroops
-        // console.log(myTroops.filter(troop => troop.id == 20)[0].dest)
+    setInterval(function(){
         $.get(`${serverURL}/getMyTroops`, { country: myCountry}, function (data, status) {
             countryData = data.countryData;
             otherData = data.otherData;
             updateTroop(data.countryData, data.otherData)
-            setTimeout(gameLoop, 1000);
         });
-
-    }
-    setInterval(function(){
-        $.get(`${serverURL}/resource`, {country: myCountry} , function (data, status) {
-            var aryResource = [];
-            for (var r in data.resource) {
-                var tmp = {};
-                tmp.category = r;
-                tmp.value = data.resource[r];
-                aryResource.push(tmp);
-            }
-            var join = d3.select("#resourceMonitor").selectAll("div").data(aryResource);
-            var enter = join.enter()
-                .append ("div");
-            enter.append("span")
-                .html(function(d){
-                    return d.category + "   ";
-                });
-            enter.append("input")
-                .attr("type", "text")
-                .attr("size", "3")
-                .property("value", function(d){
-                    return d.value;
-                })
-            enter.merge(join);
-
-            enter.exit().remove();
-                
-        })
+        $.get(`${serverURL}/resourcePoint`, function (data, status) {
+            updateResource(data);
+        });
     }, 1000);
     function updateTechTree(){
         $.get(`${serverURL}/techTree`, {country: myCountry} , function (data, status) {
