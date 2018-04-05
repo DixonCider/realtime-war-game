@@ -3,18 +3,17 @@
 <head>
     <link rel="stylesheet" type="text/css" href="styling.css">
     <link rel="stylesheet" type="text/css" href="switch.css">
-    <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+    <link href='Pacifico.css' rel='stylesheet' type='text/css'>
 </head>
 <body>
-    <script src="http://d3js.org/d3.v5.min.js"></script>
-    <script src="http://d3js.org/topojson.v3.min.js"></script>
-    <script src="https://d3js.org/d3-array.v1.min.js"></script>
-    <script src="https://d3js.org/d3-geo.v1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
-    <script src="https://d3js.org/d3-request.v1.min.js"></script>
-    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
-    <script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+    <script src="d3.v5.min.js"></script>
+    <script src="topojson.v3.min.js"></script>
+    <script src="d3-array.v1.min.js"></script>
+    <script src="d3-geo.v1.min.js"></script>
+    <script src="jquery.min.js"></script>
+    <script src="d3-queue.v3.min.js"></script>
+    <script src="d3-request.v1.min.js"></script>
+    <script src="d3-transition.v1.min.js"></script>
     <script>
     var body = d3.select("body");
     var titleDiv = body.append("div")
@@ -165,14 +164,6 @@
                     "enemy": checkedList
                 }
             );
-            // Update enemyList
-            $.get(`${serverURL}/enemyList`, { country: myCountry}, function (data, status) {
-                d3.select("#friendOrEnemyContainer").selectAll("input")
-                    .filter(function (d) { 
-                        return data.includes(d);
-                    })
-                    .property("checked", true);
-            });
         });
     friendOrEnemyCheckbox.append("label")
         .style("color", "white")
@@ -292,8 +283,8 @@
         .style("opacity", 0);
     // asynchronous task assignment.
     d3.queue()
-        .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
-        .defer(d3.json, "https://raw.githubusercontent.com/DixonCider/fongmun2017/master/places.json")
+        .defer(d3.json, "world-110m.json")
+        .defer(d3.json, "places.json")
         .await(ready);
     // svg -> defs: graphical macro for later use (not rendered immdiately)
     var emptyGeoCircle = d3.geoCircle().radius(0)();
@@ -894,6 +885,7 @@
             .data(otherTroops.Troops);
         otherTroop.enter()
             .append("image")
+            .merge(otherTroop)
             .attr("href", function(d){
                 return d.country + ".png";
             })
@@ -922,8 +914,8 @@
                 toolTip.transition()        
                     .duration(500)      
                     .style("opacity", 0);
-            })
-            .merge(otherTroop);
+            });
+            
         otherTroop.exit().remove();
         // Refresh display.
         refresh();
@@ -967,6 +959,13 @@
                 .style("display", "block")
                 .html("Buy Troops<br>$" + data.troopCost + " / unit");
             d3.select("#moneyMonitor").html("Money: "+data.money);
+        });        // Update enemyList
+        $.get(`${serverURL}/enemyList`, { country: myCountry}, function (data, status) {
+            d3.select("#friendOrEnemyContainer").selectAll("input")
+                .filter(function (d) { 
+                    return data.includes(d);
+                })
+                .property("checked", true);
         });
     }, 1000);
     function updateTechTree(){

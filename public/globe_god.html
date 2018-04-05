@@ -3,7 +3,7 @@
 <head>
     <link rel="stylesheet" type="text/css" href="styling.css">
     <link rel="stylesheet" type="text/css" href="switch.css">
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.6/angular-material.min.css">
+    <link rel="stylesheet" href="angular-material.min.css">
 
 </head>
 <body>
@@ -53,21 +53,22 @@
         </div>
     </div>
 
-    <script src="http://d3js.org/d3.v5.min.js"></script>
-    <script src="http://d3js.org/topojson.v3.min.js"></script>
-    <script src="https://d3js.org/d3-geo.v1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
-    <script src="https://d3js.org/d3-request.v1.min.js"></script>
-    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+    <script src="d3.v5.min.js"></script>
+    <script src="topojson.v3.min.js"></script>
+    <script src="d3-array.v1.min.js"></script>
+    <script src="d3-geo.v1.min.js"></script>
+    <script src="jquery.min.js"></script>
+    <script src="d3-queue.v3.min.js"></script>
+    <script src="d3-request.v1.min.js"></script>
+    <script src="d3-transition.v1.min.js"></script>
      <!-- AngularJS Material Dependencies -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-animate.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-aria.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-messages.min.js"></script>
+    <script src="angular.min.js"></script>
+    <script src="angular-animate.min.js"></script>
+    <script src="angular-aria.min.js"></script>
+    <script src="angular-messages.min.js"></script>
 
     <!-- AngularJS Material Javascript now available via Google CDN; version 1.1.4 used here -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.6/angular-material.min.js"></script>
+    <script src="angular-material.min.js"></script>
     <script>
         var app = angular.module("fmApp", []);
         app.controller("fmCtrl", function($scope, $interval, $timeout, $filter) {
@@ -195,8 +196,8 @@
         .style("opacity", 0);
     // asynchronous task assignment.
     d3.queue()
-        .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
-        .defer(d3.json, "https://raw.githubusercontent.com/DixonCider/fongmun2017/master/places.json")
+        .defer(d3.json, "world-110m.json")
+        .defer(d3.json, "places.json")
         .await(ready);
     // svg -> defs: graphical macro for later use (not rendered immdiately)
     var emptyGeoCircle = d3.geoCircle().radius(0)();
