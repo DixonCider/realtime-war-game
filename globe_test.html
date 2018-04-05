@@ -165,14 +165,6 @@
                     "enemy": checkedList
                 }
             );
-            // Update enemyList
-            $.get(`${serverURL}/enemyList`, { country: myCountry}, function (data, status) {
-                d3.select("#friendOrEnemyContainer").selectAll("input")
-                    .filter(function (d) { 
-                        return data.includes(d);
-                    })
-                    .property("checked", true);
-            });
         });
     friendOrEnemyCheckbox.append("label")
         .style("color", "white")
@@ -894,6 +886,7 @@
             .data(otherTroops.Troops);
         otherTroop.enter()
             .append("image")
+            .merge(otherTroop)
             .attr("href", function(d){
                 return d.country + ".png";
             })
@@ -923,7 +916,6 @@
                     .duration(500)      
                     .style("opacity", 0);
             })
-            .merge(otherTroop);
         otherTroop.exit().remove();
         // Refresh display.
         refresh();
@@ -967,6 +959,13 @@
                 .style("display", "block")
                 .html("Buy Troops<br>$" + data.troopCost + " / unit");
             d3.select("#moneyMonitor").html("Money: "+data.money);
+        });        // Update enemyList
+        $.get(`${serverURL}/enemyList`, { country: myCountry}, function (data, status) {
+            d3.select("#friendOrEnemyContainer").selectAll("input")
+                .filter(function (d) { 
+                    return data.includes(d);
+                })
+                .property("checked", true);
         });
     }, 1000);
     function updateTechTree(){
