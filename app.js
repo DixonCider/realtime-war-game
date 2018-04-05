@@ -84,7 +84,7 @@ app.get('*', (req, res) => {
   res.status(404).send({ message: '404_not_found' });
 });
 
-app.listen(server.port, async (err) => {
+app.listen(server.port, (err) => {
   if (err) {
     console.error(err);
     throw (err);
