@@ -14,12 +14,25 @@
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
     <script src="https://d3js.org/d3-request.v1.min.js"></script>
     <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+    <script src="https://d3js.org/d3-zoom.v1.min.js"></script>
     <script>
     var body = d3.select("body");
-    body.append("h1")
+    var titleDiv = body.append("div")
+        .style("position", "absolute")
+        .style("top", "2%")
+        .style("left", "1%")
+        .style("font-size", "5vi")
+        .style("width", "40%")
+        .style("height", "20%");
+        //.style("background-color", "blue");
+    titleDiv.append("h1")
+        .style("position", "absolute")
+        .style("top", "0%")
+        .style("left", "2%")
         .html("FONGMUN");
-    body.append("h1")
-        .style("top", "80px")
+    titleDiv.append("h1")
+        .style("top", "40%")
+        .style("left", "2%")
         .html("Korean War");
     body.append("div")
         .attr("class","techtree")
@@ -50,12 +63,20 @@
                 setSelectedAsNone();
             }
         });
-    body.append("div")
+    var fnDiv = body.append("div")
         .style("position", "absolute")
-        .style("bottom", "400px")
-        .style("left", "20px")
+        .style("bottom", "2%")
+        .style("left", "1%")
+        .style("font-size", "5vi")
+        .style("width", "20%")
+        .style("height", "75%");
+        //.style("background-color", "red");
+    fnDiv.append("div")
+        .style("font-size", "3vi")
+        .style("padding", "2%")
+        .style("width", "70%")
         .append("button")
-        .style("display", "none")
+        .attr("class","ctrl-standard fx-bubbleUp")
         .attr("id", "buyTroopsBtn")
         .on("click", function(){
             $.post(
@@ -106,12 +127,23 @@
         .attr("type", "checkbox")
         .attr("id", "CreateMode");
     */
-    var friendOrEnemyCheckbox = body.append("div")
+
+    var moneyMonitor = fnDiv.append("div")
+        .style("padding", "2%")
+        .style("color", "white")
+        .style("font-size", "4vi")
+        .attr("id", "moneyMonitor");
+    var resourceMonitor = fnDiv.append("div")
+        .style("padding", "2%")
+        .style("color", "white")
+        .style("left", "50%")
+        .style("font-size", "4vi")
+        .attr("id", "resourceMonitor");
+    var friendOrEnemyCheckbox = fnDiv.append("div")
+        .style("padding", "2%")
         .attr("id", "friendOrEnemyContainer")
         .style("color", "white")
-        .style("position", "absolute")
-        .style("bottom", "20px")
-        .style("left", "20px")
+        .style("font-size", "4vb")
         .property("innerHTML", "Enemy List")
         .selectAll("div")
         .data(totalCountryList)
@@ -147,23 +179,11 @@
         .property("innerHTML", function(d){
             return d;
         });
-
-    var resourceMonitor = body.append("div")
-        .style("color", "white")
-        .style("position", "absolute")
-        .style("left", "20px")
-        .style("bottom", "250px")
-        .attr("id", "resourceMonitor");
-    var moneyMonitor = body.append("div")
-        .style("color", "white")
-        .style("position", "absolute")
-        .style("left", "20px")
-        .style("bottom", "380px")
-        .attr("id", "moneyMonitor");
     // Set the dimensions and margins of the diagram
     var margin = {top: 20, right: 90, bottom: 30, left: 90},
-        techWidth = 960 - margin.left - margin.right,
-        techHeight = 500 - margin.top - margin.bottom;
+        techWidth = screen.width*0.8 - margin.left - margin.right,
+        techHeight = screen.height*0.8 - margin.top - margin.bottom;
+
 
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
@@ -175,15 +195,20 @@
         .style("background-image", "url('navy.jpg')")
         .style("border-style", "inset")
         .style("border-width", "3px")
-        .style("top", "50px")
+        .style("top", "15%")
         .style("left", (screen.width - techWidth)/2 + "px")
         .style("width", techWidth+"px")
         .style("height", techHeight+"px")
         .attr("id", "techTreeDiv");
+    svgTechDiv.append("h1")
+        .style("position", "absolute")
+        .style("top", "1%")
+        .html("Tech Tree Development");
     var svgTechNuclear = svgTechDiv.append("div")
         .attr("id", "nuclearDiv")
         .style("opacity", "0")
         .style("position", "absolute")
+        .style("top", "30%")
         .append("span")
         .attr("class", "switch")
         .append("span")
