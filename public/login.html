@@ -235,33 +235,16 @@ select:focus, textarea:focus {
   text-align: right;
 }
 </style>
-<!-- <script src="jquery-3.3.1.min.js"></script> -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script> -->
+<script src="jquery.min.js"></script>
 <script type="text/javascript">
 
 console.log("loaded!");
 
-/*window.onload = function() {
-    if (window.jQuery) {  
-        // jQuery is loaded  
-        alert("Yeah!");
-    } else {
-        // jQuery is not loaded
-        alert("Doesn't Work");
-    }
-}*/
-
-/*$(document).ready(function(){
-    $("p").click(function(){
-        $(this).hide();
-    });
-});*/
-  $(document).ready(function () {
-    $("select").on('change', function () {
-        localStorage.setItem('Country', this.value);
-      })
-  });
+$(document).ready(function () {
+  $("select").on('change', function () {
+      localStorage.setItem('Country', this.value);
+    })
+});
 
 $(".form")
   .find("input, textarea")
@@ -339,7 +322,7 @@ $(".tab a").on("click", function(e) {
               <option value="Japan">Japan</option>
               <option value="Mexico">Mexico</option>
               <option value="India">India</option>
-              <option value="Phillipines">Phillipines</option>
+              <option value="Philippines">Philippines</option>
             </select>
           </div>
           
@@ -360,7 +343,6 @@ $(".tab a").on("click", function(e) {
         </div>
         
       </div><!-- tab-content -->
-      
 </div> <!-- /form -->
 </body>
 </html>

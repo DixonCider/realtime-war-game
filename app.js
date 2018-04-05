@@ -19,7 +19,7 @@ const users = {
   Japan: 'welovesushi',
   Mexico: 'breakthatwall',
   India: 'welovecurrie',
-  Phillipines: 'fucktheworld',
+  Philippines: 'fucktheworld',
   Vietnam: 'wemaderice',
 }
 
