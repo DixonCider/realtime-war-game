@@ -1,8 +1,9 @@
-var express = require ('express');
-var bodyParser = require ('body-parser');
-var session = require("express-session");
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
+const express = require ('express');
+const bodyParser = require ('body-parser');
+const session = require("express-session");
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const path = require('path');
 
 const server = {
   host: '127.0.0.1',
@@ -10,8 +11,19 @@ const server = {
 }
 
 const users = {
-  rootn: 'How',
+  USA: 'maga',
 }
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static('public'));
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
 var localStrategy = new LocalStrategy(
   function (username, password, done) {
@@ -32,26 +44,6 @@ var localStrategy = new LocalStrategy(
 )
 
 passport.use('local', localStrategy);
-
-
-
-const app = express();
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use(express.static('public'));
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
-
-
-app.use(bodyParser({ limit: '500mb' }));
-app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use(session({ secret: "cats" }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -68,7 +60,7 @@ app.get('/', (req, res) => {
   if (req.user) {
     // logged in
     console.log(req.user);
-    res.send('hi');
+    res.sendFile(path.join(__dirname, '/public/globe_test.html'));
   } else {
     // not logged in
     res.redirect('/login.html');
