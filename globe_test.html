@@ -89,7 +89,7 @@
     var width = screen.width * 0.95, height = screen.height * 0.95;
 
     var proj = d3.geoOrthographic()
-        .scale(300)
+        .scale(height/2)
         .translate([width / 2, height / 2])
         .clipAngle(90);
     var preD, postD, pntD;
