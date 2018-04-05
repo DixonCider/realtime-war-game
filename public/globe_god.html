@@ -18,9 +18,20 @@
         <input type="number" ng-model="resource.loc[1]" style="width: 60px">
         <lable>Cost</lable>
         <input type="number" ng-model="resource.cost" style="width: 60px">
-        <span ng-repeat="(key, value) in resource.award">
-            <lable>{{key}}</lable><input type="number" ng-model="value" style="width: 60px">
-        </span>
+        <lable>a</lable>
+        <input type="number" ng-model="resource.award.a" style="width: 60px">
+        <lable>b</lable>
+        <input type="number" ng-model="resource.award.b" style="width: 60px">
+        <lable>c</lable>
+        <input type="number" ng-model="resource.award.c" style="width: 60px">
+        <lable>d</lable>
+        <input type="number" ng-model="resource.award.d" style="width: 60px">
+        <lable>x</lable>
+        <input type="number" ng-model="resource.award.x" style="width: 60px">
+        <lable>y</lable>
+        <input type="number" ng-model="resource.award.y" style="width: 60px">
+        <lable>z</lable>
+        <input type="number" ng-model="resource.award.z" style="width: 60px">
         <lable>Range</lable>
         <input type="number" ng-model="resource.range" style="width: 40px">
         <div ng-repeat="x in ngCountryData" style="padding: 10px; color: white">
@@ -45,9 +56,20 @@
             <lable>Nuclear</lable>
             <input type="checkbox" ng-model="x.nuclear">
             <br>
-            <span ng-repeat="(key, value) in x.resource">
-                <lable>{{key}}</lable><input type="number" ng-model="value" style="width: 60px">
-            </span>
+            <lable>a</lable>
+            <input type="number" ng-model="x.resource.a" style="width: 60px">
+            <lable>b</lable>
+            <input type="number" ng-model="x.resource.b" style="width: 60px">
+            <lable>c</lable>
+            <input type="number" ng-model="x.resource.c" style="width: 60px">
+            <lable>d</lable>
+            <input type="number" ng-model="x.resource.d" style="width: 60px">
+            <lable>x</lable>
+            <input type="number" ng-model="x.resource.x" style="width: 60px">
+            <lable>y</lable>
+            <input type="number" ng-model="x.resource.y" style="width: 60px">
+            <lable>z</lable>
+            <input type="number" ng-model="x.resource.z" style="width: 60px">
             <span>EnemyList</span>
             <label ng-repeat="enemy in x.enemyList">{{enemy}}</label>
         </div>
