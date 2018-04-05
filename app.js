@@ -12,6 +12,7 @@ const server = {
 
 const users = {
   USA: 'maga',
+  ROK: 'korea',
 }
 
 const app = express();

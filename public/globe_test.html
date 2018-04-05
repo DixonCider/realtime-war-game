@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-
 <head>
     <link rel="stylesheet" type="text/css" href="styling.css">
     <link rel="stylesheet" type="text/css" href="switch.css">
     <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
 </head>
-
 <body>
     <script src="http://d3js.org/d3.v5.min.js"></script>
     <script src="http://d3js.org/topojson.v3.min.js"></script>
@@ -18,390 +16,390 @@
     <script src="https://d3js.org/d3-transition.v1.min.js"></script>
     <script src="https://d3js.org/d3-zoom.v1.min.js"></script>
     <script>
-        var body = d3.select("body");
-        var titleDiv = body.append("div")
-            .style("position", "absolute")
-            .style("top", "2%")
-            .style("left", "1%")
-            .style("font-size", "5vi")
-            .style("width", "40%")
-            .style("height", "20%");
+    var body = d3.select("body");
+    var titleDiv = body.append("div")
+        .style("position", "absolute")
+        .style("top", "2%")
+        .style("left", "1%")
+        .style("font-size", "5vi")
+        .style("width", "40%")
+        .style("height", "20%");
         //.style("background-color", "blue");
-        titleDiv.append("h1")
-            .style("position", "absolute")
-            .style("top", "0%")
-            .style("left", "2%")
-            .html("FONGMUN");
-        titleDiv.append("h1")
-            .style("top", "40%")
-            .style("left", "2%")
-            .html("Korean War");
-        body.append("div")
-            .attr("class", "techtree")
-            .append("button")
-            .attr("class", "ctrl-standard fx-bubbleUp")
-            .html("Tech<br>Tree")
-            .on("mousedown", function (d) {
-                d3.select("#techTreeDiv").style("display", function () {
-                    if (d3.select("#techTreeDiv").style("display") == "none") {
-                        return "block";
-                    }
-                    else {
-                        return "none";
-                    }
-                });
-            });
-        body.append("div")
-            .attr("class", "logout")
-            .append("button")
-            .attr("class", "ctrl-standard fx-bubbleDown")
-            .html("Log<br>Out");
-        d3.select(window)
-            .on("mousemove", mousemove)
-            .on("mouseup", mouseup)
-            .on("keydown", function () {
-                if (d3.event.keyCode == 27) {
-                    currentTroop = null;
-                    setSelectedAsNone();
+    titleDiv.append("h1")
+        .style("position", "absolute")
+        .style("top", "0%")
+        .style("left", "2%")
+        .html("FONGMUN");
+    titleDiv.append("h1")
+        .style("top", "40%")
+        .style("left", "2%")
+        .html("Korean War");
+    body.append("div")
+        .attr("class","techtree")
+        .append("button")
+        .attr("class","ctrl-standard fx-bubbleUp")
+        .html("Tech<br>Tree")
+        .on("mousedown", function(d){
+            d3.select("#techTreeDiv").style("display", function(){
+                if (d3.select("#techTreeDiv").style("display") == "none") {
+                    return "block";
+                }
+                else{
+                    return "none";
                 }
             });
-        var fnDiv = body.append("div")
-            .style("position", "absolute")
-            .style("bottom", "2%")
-            .style("left", "1%")
-            .style("font-size", "5vi")
-            .style("width", "20%")
-            .style("height", "75%");
+        });
+    body.append("div")
+        .attr("class","logout")
+        .append("button")
+        .attr("class","ctrl-standard fx-bubbleDown")
+        .html("Log<br>Out");
+    d3.select(window)
+        .on("mousemove", mousemove)
+        .on("mouseup", mouseup)
+        .on("keydown", function(){
+            if (d3.event.keyCode == 27) {
+                currentTroop = null;
+                setSelectedAsNone();
+            }
+        });
+    var fnDiv = body.append("div")
+        .style("position", "absolute")
+        .style("bottom", "2%")
+        .style("left", "1%")
+        .style("font-size", "5vi")
+        .style("width", "20%")
+        .style("height", "75%");
         //.style("background-color", "red");
-        fnDiv.append("div")
-            .style("font-size", "3vi")
-            .style("padding", "2%")
-            .style("width", "70%")
-            .append("button")
-            .attr("class", "ctrl-standard fx-bubbleUp")
-            .attr("id", "buyTroopsBtn")
-            .on("click", function () {
-                $.post(
-                    `${serverURL}/addTroop`, {
-                        "country": myCountry
-                    }
-                );
-            })
-        // var width = 960, height = 500;
-        var width = screen.width * 0.95, height = screen.height * 0.95;
-
-        var proj = d3.geoOrthographic()
-            .scale(300)
-            .translate([width / 2, height / 2])
-            .clipAngle(90);
-        var preD, postD, pntD;
-        // projection(location): that coordinates -> cartesian coordinates in pixels
-        // projection.invert(point): cartesian coordinates [x,y] -> [longtitude, latitude]
-        // projection.rotate([yaw, pitch, roll]) -> sets projection's three-axis rotation
-        // projection.scale([scale]) -> scale factor of projection
-        // projection.clipAngle -> semi-fog of war, how much degree to displaya
-        // projection.translate([x, y]) -> offset projection's center coordinate
-        var path = d3.geoPath().projection(proj).pointRadius(1);
-        // d3.geo.path() -> given geoJSON object -> generate a SVG path
-        var graticule = d3.geoGraticule();
-        // graticule -> vertical and horizontal grid lines 
-        // -> returns a GeoJSON MultiLineString Geometry object representing all meridians and parallels
-        var svg = body.append("div").append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("position", "absolute")
-            .on("mousedown", mousedown)
-            .on("mouseup", moveDestination);
-
-
-        const totalCountryList = ["DPRK", "USA", "Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
-        /*
-        var createContainer = d3.select("body").append("div")
-            .style("position", "absolute")
-            .style("bottom", "20px")
-            .style("right", "20px");
-        createContainer.append("label")
-            .style("color", "white")
-            .property("innerHTML", "Create Mode");
-        createContainer.append("input")
-            .attr("type", "checkbox")
-            .attr("id", "CreateMode");
-        */
-
-        var moneyMonitor = fnDiv.append("div")
-            .style("padding", "2%")
-            .style("color", "white")
-            .style("font-size", "4vi")
-            .attr("id", "moneyMonitor");
-        var resourceMonitor = fnDiv.append("div")
-            .style("padding", "2%")
-            .style("color", "white")
-            .style("left", "50%")
-            .style("font-size", "4vi")
-            .attr("id", "resourceMonitor");
-        var friendOrEnemyCheckbox = fnDiv.append("div")
-            .style("padding", "2%")
-            .attr("id", "friendOrEnemyContainer")
-            .style("color", "white")
-            .style("font-size", "4vb")
-            .property("innerHTML", "Enemy List")
-            .selectAll("div")
-            .data(totalCountryList)
-            .enter()
-            .append("div");
-        friendOrEnemyCheckbox.append("input")
-            .attr("type", "checkbox")
-            .on("change", function (d) {
-                var checkedList = [];
-                d3.select("#friendOrEnemyContainer").selectAll("input").each(function (d, i) {
-                    if (d3.select(this).property("checked") == true) {
-                        checkedList.push(d);
-                    }
-                });
-                // Send request to change enemyList
-                $.post(
-                    `${serverURL}/updateEnemy`, {
-                        "country": myCountry,
-                        "enemy": checkedList
-                    }
-                );
-                // Update enemyList
-                $.get(`${serverURL}/enemyList`, { country: myCountry }, function (data, status) {
-                    d3.select("#friendOrEnemyContainer").selectAll("input")
-                        .filter(function (d) {
-                            return data.includes(d);
-                        })
-                        .property("checked", true);
-                });
-            });
-        friendOrEnemyCheckbox.append("label")
-            .style("color", "white")
-            .property("innerHTML", function (d) {
-                return d;
-            });
-        // Set the dimensions and margins of the diagram
-        var margin = { top: 20, right: 90, bottom: 30, left: 90 },
-            techWidth = screen.width * 0.8 - margin.left - margin.right,
-            techHeight = screen.height * 0.8 - margin.top - margin.bottom;
-
-
-        // append the svg object to the body of the page
-        // appends a 'group' element to 'svg'
-        // moves the 'group' element to the top left margin
-        var svgTechDiv = d3.select("body").append("div")
-            .attr("class", "techTree")
-            .style("display", "none")
-            .style("position", "absolute")
-            .style("background-image", "url('navy.jpg')")
-            .style("border-style", "inset")
-            .style("border-width", "3px")
-            .style("top", "15%")
-            .style("left", (screen.width - techWidth) / 2 + "px")
-            .style("width", techWidth + "px")
-            .style("height", techHeight + "px")
-            .attr("id", "techTreeDiv");
-        svgTechDiv.append("h1")
-            .style("position", "absolute")
-            .style("top", "1%")
-            .html("Tech Tree Development");
-        var svgTechNuclear = svgTechDiv.append("div")
-            .attr("id", "nuclearDiv")
-            .style("opacity", "0")
-            .style("position", "absolute")
-            .style("top", "30%")
-            .append("span")
-            .attr("class", "switch")
-            .append("span")
-            .attr("class", "switch-border1")
-            .append("span")
-            .attr("class", "switch-border2");
-        svgTechNuclear.append("input")
-            .attr("id", "switch2")
-            .attr("type", "checkbox")
-            .on("change", function () {
-                setTimeout(function () {
-                    if (d3.select("#switch2").property("checked")) {
-                        d3.select("#switch2").property("checked", true);
-                        var destroyCountry = prompt("Enter the target country:");
-                        if (destroyCountry == null || destroyCountry == "") {
-                            d3.select("#switch2").property("checked", false);
-                            alert("Attack cancelled");
-                        }
-                        else if (!totalCountryList.includes(destroyCountry) || destroyCountry == myCountry) {
-                            d3.select("#switch2").property("checked", false);
-                            alert("Invalid country");
-                        }
-                        else {
-                            $.post(
-                                `${serverURL}/NUKE`, {
-                                    "country": myCountry,
-                                    "target": destroyCountry
-                                }
-                            );
-                            setTimeout(function () {
-                                alert("Destroyed " + destroyCountry);
-                                d3.select("#switch2").property("checked", false);
-                            }, 2000);
-                        }
-
-                    }
-                }, 500);
-            });
-        svgTechNuclear.append("label")
-            .attr("for", "switch2");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-top");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-shadow");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-handle");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-handle-left");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-handle-right");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-handle-top");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-handle-bottom");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-handle-base");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-led switch-led-green")
-            .append("span")
-            .attr("class", "switch-led-border")
-            .append("span")
-            .attr("class", "switch-led-light")
-            .append("span")
-            .attr("class", "switch-led-glow");
-        svgTechNuclear.append("span")
-            .attr("class", "switch-led switch-led-red")
-            .append("span")
-            .attr("class", "switch-led-border")
-            .append("span")
-            .attr("class", "switch-led-light")
-            .append("span")
-            .attr("class", "switch-led-glow");
-        var svgTech = svgTechDiv.append("svg")
-            .attr("width", techWidth + margin.right + margin.left)
-            .attr("height", techHeight + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate("
-                + (techWidth * 0.5) + "," + (techHeight * 0.85) + ")");
-        // Append group for containing hover info.
-        var toolTip = body.append("div")
-            .style("opacity", 0);
-        // asynchronous task assignment.
-        d3.queue()
-            .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
-            .defer(d3.json, "https://raw.githubusercontent.com/DixonCider/fongmun2017/master/places.json")
-            .await(ready);
-        // svg -> defs: graphical macro for later use (not rendered immdiately)
-        var emptyGeoCircle = d3.geoCircle().radius(0)();
-        var emptyGeoLineString = {
-            "type": "LineString",
-            "coordinates": [[0, 0], [0, 0]]
-        };
-        /*
-        var vision = class vision {
-            constructor(id, lat, lon, r){
-                this.lat = lat;
-                this.lon = lon;
-                this.r = r;
-                this.id = id;
-                this.enable();
-            }
-            update(key, val) {
-                if (this.hasOwnProperty(key)) {
-                    this[key] = val;
-                    var fogMaskCircle = d3.geoCircle().center([this.lat, this.lon]).radius(this.r);
-                    svg.select("#" + this.id)
-                        .datum(fogMaskCircle())
-                        .attr("d", path);
+    fnDiv.append("div")
+        .style("font-size", "3vi")
+        .style("padding", "2%")
+        .style("width", "70%")
+        .append("button")
+        .attr("class","ctrl-standard fx-bubbleUp")
+        .attr("id", "buyTroopsBtn")
+        .on("click", function(){
+            $.post(
+                `${serverURL}/addTroop`, {
+                    "country": myCountry
                 }
-            }
-            disable(){
+            );
+        })
+    // var width = 960, height = 500;
+    var width = screen.width * 0.95, height = screen.height * 0.95;
+
+    var proj = d3.geoOrthographic()
+        .scale(height/2)
+        .translate([width / 2, height / 2])
+        .clipAngle(90);
+    var preD, postD, pntD;
+    // projection(location): that coordinates -> cartesian coordinates in pixels
+    // projection.invert(point): cartesian coordinates [x,y] -> [longtitude, latitude]
+    // projection.rotate([yaw, pitch, roll]) -> sets projection's three-axis rotation
+    // projection.scale([scale]) -> scale factor of projection
+    // projection.clipAngle -> semi-fog of war, how much degree to displaya
+    // projection.translate([x, y]) -> offset projection's center coordinate
+    var path = d3.geoPath().projection(proj).pointRadius(1);
+    // d3.geo.path() -> given geoJSON object -> generate a SVG path
+    var graticule = d3.geoGraticule();
+    // graticule -> vertical and horizontal grid lines 
+    // -> returns a GeoJSON MultiLineString Geometry object representing all meridians and parallels
+    var svg = body.append("div").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("position", "absolute")
+        .on("mousedown", mousedown)
+        .on("mouseup", moveDestination);
+
+    
+    const totalCountryList = ["DPRK", "USA", "Korea", "Russia", "ROC", "Japan", "Mexico", "India", "Phillipines", "Vietnam"];
+    /*
+    var createContainer = d3.select("body").append("div")
+        .style("position", "absolute")
+        .style("bottom", "20px")
+        .style("right", "20px");
+    createContainer.append("label")
+        .style("color", "white")
+        .property("innerHTML", "Create Mode");
+    createContainer.append("input")
+        .attr("type", "checkbox")
+        .attr("id", "CreateMode");
+    */
+
+    var moneyMonitor = fnDiv.append("div")
+        .style("padding", "2%")
+        .style("color", "white")
+        .style("font-size", "4vi")
+        .attr("id", "moneyMonitor");
+    var resourceMonitor = fnDiv.append("div")
+        .style("padding", "2%")
+        .style("color", "white")
+        .style("left", "50%")
+        .style("font-size", "4vi")
+        .attr("id", "resourceMonitor");
+    var friendOrEnemyCheckbox = fnDiv.append("div")
+        .style("padding", "2%")
+        .attr("id", "friendOrEnemyContainer")
+        .style("color", "white")
+        .style("font-size", "4vb")
+        .property("innerHTML", "Enemy List")
+        .selectAll("div")
+        .data(totalCountryList)
+        .enter()
+        .append("div");
+    friendOrEnemyCheckbox.append("input")
+        .attr("type", "checkbox")
+        .on("change", function(d){
+            var checkedList = [];
+            d3.select("#friendOrEnemyContainer").selectAll("input").each(function(d, i){
+                if (d3.select(this).property("checked") == true) {
+                    checkedList.push(d);
+                }
+            });
+            // Send request to change enemyList
+            $.post(
+                `${serverURL}/updateEnemy`, {
+                    "country": myCountry,
+                    "enemy": checkedList
+                }
+            );
+            // Update enemyList
+            $.get(`${serverURL}/enemyList`, { country: myCountry}, function (data, status) {
+                d3.select("#friendOrEnemyContainer").selectAll("input")
+                    .filter(function (d) { 
+                        return data.includes(d);
+                    })
+                    .property("checked", true);
+            });
+        });
+    friendOrEnemyCheckbox.append("label")
+        .style("color", "white")
+        .property("innerHTML", function(d){
+            return d;
+        });
+    // Set the dimensions and margins of the diagram
+    var margin = {top: 20, right: 90, bottom: 30, left: 90},
+        techWidth = screen.width*0.8 - margin.left - margin.right,
+        techHeight = screen.height*0.8 - margin.top - margin.bottom;
+
+
+    // append the svg object to the body of the page
+    // appends a 'group' element to 'svg'
+    // moves the 'group' element to the top left margin
+    var svgTechDiv = d3.select("body").append("div")
+        .attr("class", "techTree")
+        .style("display", "none")
+        .style("position", "absolute")
+        .style("background-image", "url('navy.jpg')")
+        .style("border-style", "inset")
+        .style("border-width", "3px")
+        .style("top", "15%")
+        .style("left", (screen.width - techWidth)/2 + "px")
+        .style("width", techWidth+"px")
+        .style("height", techHeight+"px")
+        .attr("id", "techTreeDiv");
+    svgTechDiv.append("h1")
+        .style("position", "absolute")
+        .style("top", "1%")
+        .html("Tech Tree Development");
+    var svgTechNuclear = svgTechDiv.append("div")
+        .attr("id", "nuclearDiv")
+        .style("opacity", "0")
+        .style("position", "absolute")
+        .style("top", "30%")
+        .append("span")
+        .attr("class", "switch")
+        .append("span")
+        .attr("class", "switch-border1")
+        .append("span")
+        .attr("class", "switch-border2");
+    svgTechNuclear.append("input")
+        .attr("id", "switch2")
+        .attr("type", "checkbox")
+        .on("change", function(){
+            setTimeout(function(){
+                if (d3.select("#switch2").property("checked")) {
+                    d3.select("#switch2").property("checked", true);
+                    var destroyCountry = prompt("Enter the target country:");
+                    if (destroyCountry == null || destroyCountry == "") {
+                        d3.select("#switch2").property("checked", false);
+                        alert("Attack cancelled");
+                    }
+                    else if (!totalCountryList.includes(destroyCountry) || destroyCountry == myCountry){
+                        d3.select("#switch2").property("checked", false);
+                        alert("Invalid country");
+                    } 
+                    else {
+                        $.post(
+                            `${serverURL}/NUKE`, {
+                                "country": myCountry,
+                                "target": destroyCountry
+                            }
+                        );
+                        setTimeout(function(){
+                            alert("Destroyed " + destroyCountry);
+                            d3.select("#switch2").property("checked", false);
+                        }, 2000);
+                    }
+                    
+                }
+            },500);
+        });
+    svgTechNuclear.append("label")
+        .attr("for", "switch2");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-top");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-shadow");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-left");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-right");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-top");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-bottom");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-handle-base");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-led switch-led-green")
+        .append("span")
+        .attr("class", "switch-led-border")
+        .append("span")
+        .attr("class", "switch-led-light")
+        .append("span")
+        .attr("class", "switch-led-glow");
+    svgTechNuclear.append("span")
+        .attr("class", "switch-led switch-led-red")
+        .append("span")
+        .attr("class", "switch-led-border")
+        .append("span")
+        .attr("class", "switch-led-light")
+        .append("span")
+        .attr("class", "switch-led-glow");
+    var svgTech = svgTechDiv.append("svg")
+        .attr("width", techWidth + margin.right + margin.left)
+        .attr("height", techHeight + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate("
+              + (techWidth * 0.5) + "," + (techHeight * 0.85) + ")");
+    // Append group for containing hover info.
+    var toolTip = body.append("div")
+        .style("opacity", 0);
+    // asynchronous task assignment.
+    d3.queue()
+        .defer(d3.json, "https://raw.githubusercontent.com/jonataswalker/map-utils/master/data/json/world-110m.json")
+        .defer(d3.json, "https://raw.githubusercontent.com/DixonCider/fongmun2017/master/places.json")
+        .await(ready);
+    // svg -> defs: graphical macro for later use (not rendered immdiately)
+    var emptyGeoCircle = d3.geoCircle().radius(0)();
+    var emptyGeoLineString = {
+        "type": "LineString",
+        "coordinates": [ [0,0], [0,0] ]
+    };
+    /*
+    var vision = class vision {
+        constructor(id, lat, lon, r){
+            this.lat = lat;
+            this.lon = lon;
+            this.r = r;
+            this.id = id;
+            this.enable();
+        }
+        update(key, val) {
+            if (this.hasOwnProperty(key)) {
+                this[key] = val;
+                var fogMaskCircle = d3.geoCircle().center([this.lat, this.lon]).radius(this.r);
                 svg.select("#" + this.id)
-                    .data([])
-                    .exit()
-                    .remove();
-            }
-            enable(){
-                if (svg.select("#" + this.id)[0][0] == null) {
-                    var fogMaskCircle = d3.geoCircle().center([this.lat, this.lon]).radius(this.r);
-                    svg.select("#visionMask").append("path")
-                        .datum(fogMaskCircle())
-                        .attr("d", path)
-                        .attr("class", "fogMask")
-                        .attr("id", this.id)
-                        .style("fill", "black");
-                }
+                    .datum(fogMaskCircle())
+                    .attr("d", path);
             }
         }
-        */
-        var currentTroop = null;
+        disable(){
+            svg.select("#" + this.id)
+                .data([])
+                .exit()
+                .remove();
+        }
+        enable(){
+            if (svg.select("#" + this.id)[0][0] == null) {
+                var fogMaskCircle = d3.geoCircle().center([this.lat, this.lon]).radius(this.r);
+                svg.select("#visionMask").append("path")
+                    .datum(fogMaskCircle())
+                    .attr("d", path)
+                    .attr("class", "fogMask")
+                    .attr("id", this.id)
+                    .style("fill", "black");
+            }
+        }
+    }
+    */
+    var currentTroop = null;
 
-        function ready(error, world, places) {
-            if (error) throw error;
-            var ocean_fill = svg.append("defs").append("radialGradient")
-                .attr("id", "ocean_fill")
-                .attr("cx", "75%")
-                .attr("cy", "25%");
-            // center of the ocean gradient
-            ocean_fill.append("stop").attr("offset", "5%").attr("stop-color", "#ddf");
-            ocean_fill.append("stop").attr("offset", "100%").attr("stop-color", "#9ab");
-            // sunshine in the land
-            var globe_highlight = svg.append("defs").append("radialGradient")
-                .attr("id", "globe_highlight")
-                .attr("cx", "75%")
-                .attr("cy", "25%");
-            globe_highlight.append("stop")
-                .attr("offset", "5%").attr("stop-color", "#ffd")
-                .attr("stop-opacity", "0.6");
-            globe_highlight.append("stop")
-                .attr("offset", "100%").attr("stop-color", "#ba9")
-                .attr("stop-opacity", "0.2");
-            var fogsize = 900;
-            var fog = svg.append("defs").append("pattern")
-                .attr("id", "fog")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("patternUnits", "userSpaceOnUse");
-            fog.append("svg:image")
-                .attr("xlink:href", "fog.webp")
-                .attr("width", width)
-                .attr("height", height);
-            var globe_shading = svg.append("defs").append("radialGradient")
-                .attr("id", "globe_shading")
-                .attr("cx", "50%")
-                .attr("cy", "40%");
-            globe_shading.append("stop")
-                .attr("offset", "50%").attr("stop-color", "#9ab")
-                .attr("stop-opacity", "0")
-            globe_shading.append("stop")
-                .attr("offset", "100%").attr("stop-color", "#3e6184")
-                .attr("stop-opacity", "0.3")
-            var visionMask = svg.append("defs").append("mask")
-                .attr("id", "visionMask");
+    function ready(error, world, places) {
+        if (error) throw error;
+        var ocean_fill = svg.append("defs").append("radialGradient")
+            .attr("id", "ocean_fill")
+            .attr("cx", "75%")
+            .attr("cy", "25%");
+        // center of the ocean gradient
+        ocean_fill.append("stop").attr("offset", "5%").attr("stop-color", "#ddf");
+        ocean_fill.append("stop").attr("offset", "100%").attr("stop-color", "#9ab");
+        // sunshine in the land
+        var globe_highlight = svg.append("defs").append("radialGradient")
+            .attr("id", "globe_highlight")
+            .attr("cx", "75%")
+            .attr("cy", "25%");
+        globe_highlight.append("stop")
+            .attr("offset", "5%").attr("stop-color", "#ffd")
+            .attr("stop-opacity","0.6");
+        globe_highlight.append("stop")
+            .attr("offset", "100%").attr("stop-color", "#ba9")
+            .attr("stop-opacity","0.2");
+        var fogsize = 900;
+        var fog = svg.append("defs").append("pattern")
+            .attr("id", "fog")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("patternUnits", "userSpaceOnUse");
+        fog.append("svg:image")
+            .attr("xlink:href", "fog.webp")
+            .attr("width", width)
+            .attr("height", height);
+        var globe_shading = svg.append("defs").append("radialGradient")
+            .attr("id", "globe_shading")
+            .attr("cx", "50%")
+            .attr("cy", "40%");
+        globe_shading.append("stop")
+            .attr("offset","50%").attr("stop-color", "#9ab")
+            .attr("stop-opacity","0")
+        globe_shading.append("stop")
+            .attr("offset","100%").attr("stop-color", "#3e6184")
+            .attr("stop-opacity","0.3")
+        var visionMask = svg.append("defs").append("mask")
+            .attr("id", "visionMask");
+            
+        // visionMask.append("circle")
+        //     .attr("cx", width / 2).attr("cy", height / 2)
+        //     .attr("r", proj.scale())
+        //     .attr("class", "fogMask")
+        //     .style("fill", "white");
+            
+        var fogMotherMaskCircle = d3.geoCircle().center([0, 0]).radius(179.9)();
+        visionMask.append("path")
+            .datum(fogMotherMaskCircle)
+            .attr("class", "fogMask")
+            .style("fill", "white")
+            .attr("d", path);
 
-            // visionMask.append("circle")
-            //     .attr("cx", width / 2).attr("cy", height / 2)
-            //     .attr("r", proj.scale())
-            //     .attr("class", "fogMask")
-            //     .style("fill", "white");
-
-            var fogMotherMaskCircle = d3.geoCircle().center([0, 0]).radius(179.9)();
-            visionMask.append("path")
-                .datum(fogMotherMaskCircle)
-                .attr("class", "fogMask")
-                .style("fill", "white")
-                .attr("d", path);
-
-            visionMask.append("g")
-                .attr("class", "fogMasksSelf");
-            visionMask.append("g")
-                .attr("class", "fogMasksOthers");
+        visionMask.append("g")
+            .attr("class", "fogMasksSelf");
+        visionMask.append("g")
+            .attr("class", "fogMasksOthers");
             /*
         var fogMaskCircle = d3.geoCircle().center([120, 23.5]).radius(30);
         visionMask.append("path")
@@ -416,436 +414,351 @@
             .attr("class", "fogMask")
             .style("fill", "white");
         */
-            var drop_shadow = svg.append("defs").append("radialGradient")
-                .attr("id", "drop_shadow")
-                .attr("cx", "50%")
-                .attr("cy", "50%");
-            drop_shadow.append("stop")
-                .attr("offset", "20%").attr("stop-color", "#000")
-                .attr("stop-opacity", ".5")
-            drop_shadow.append("stop")
-                .attr("offset", "100%").attr("stop-color", "#000")
-                .attr("stop-opacity", "0")
-            // Shadow on the floor
-            svg.append("ellipse")
-                .attr("cx", width / 2 * 0.975).attr("cy", height / 2 * 1.6)
-                .attr("rx", proj.scale() * .90)
-                .attr("ry", proj.scale() * .25)
-                .attr("class", "noclicks")
-                .style("fill", "url(#drop_shadow)");
-            // url(#patternDefinedInDefs)
+        var drop_shadow = svg.append("defs").append("radialGradient")
+            .attr("id", "drop_shadow")
+            .attr("cx", "50%")
+            .attr("cy", "50%");
+        drop_shadow.append("stop")
+            .attr("offset","20%").attr("stop-color", "#000")
+            .attr("stop-opacity",".5")
+        drop_shadow.append("stop")
+            .attr("offset","100%").attr("stop-color", "#000")
+            .attr("stop-opacity","0")
+        // Shadow on the floor
+        svg.append("ellipse")
+            .attr("cx", width / 2 * 0.975).attr("cy", height / 2 * 1.6)
+            .attr("rx", proj.scale()*.90)
+            .attr("ry", proj.scale()*.25)
+            .attr("class", "noclicks")
+            .style("fill", "url(#drop_shadow)");
+        // url(#patternDefinedInDefs)
+        
+        // ocean circle
+        svg.append("circle")
+            .attr("cx", width / 2).attr("cy", height / 2)
+            .attr("r", proj.scale())
+            .attr("class", "noclicks")
+            .style("fill", "url(#ocean_fill)");
+        // land color
+        preD = topojson.feature(world, world.objects.land);
+        svg.append("path")
+            .datum(topojson.feature(world, world.objects.land))
+            .attr("class", "land")
+            .attr("d", path);
+        postD = path(preD);
+        // set verticals and parallel lines
+        svg.append("path")
+            .datum(graticule)
+            .attr("class", "graticule noclicks")
+            .attr("d", path);
+        
+        // points of locations
+        pntD = places.features;
+        svg.append("g").attr("class","points")
+            .selectAll("text").data(places.features)
+            .enter().append("path")
+            .attr("class", "point")
+            .attr("d", path);
+        svg.append("g").attr("class","labels")
+            .selectAll("text").data(places.features)
+            .enter().append("text")
+            .attr("class", "label")
+            .text(function(d) { return d.properties.name });
 
-            // ocean circle
-            svg.append("circle")
-                .attr("cx", width / 2).attr("cy", height / 2)
-                .attr("r", proj.scale())
-                .attr("class", "noclicks")
-                .style("fill", "url(#ocean_fill)");
-            // land color
-            preD = topojson.feature(world, world.objects.land);
-            svg.append("path")
-                .datum(topojson.feature(world, world.objects.land))
-                .attr("class", "land")
-                .attr("d", path);
-            postD = path(preD);
-            // set verticals and parallel lines
-            svg.append("path")
-                .datum(graticule)
-                .attr("class", "graticule noclicks")
-                .attr("d", path);
+        // append gray cover
+        var fogCircle = d3.geoCircle().center([0,90]).radius(179)();
+        svg.append("path")
+            .datum(fogCircle)
+            .attr("class", "fog")
+            .attr("d", path)
+            .attr("fill", "url(#fog)")
+            .attr("mask", "url(#visionMask)");
+        // sun shine land brighter
+        svg.append("circle")
+            .attr("cx", width / 2).attr("cy", height / 2)
+            .attr("r", proj.scale())
+            .attr("class","noclicks")
+            .style("fill", "url(#globe_highlight)");
+        // shadows on the side
+        svg.append("circle")
+            .attr("cx", width / 2).attr("cy", height / 2)
+            .attr("r", proj.scale())
+            .attr("class","noclicks")
+            .style("fill", "url(#globe_shading)");
+        // Group for containing resource points.
+        svg.append("g")
+            .attr("class", "resources");
+        var emptyCircle = d3.geoCircle().radius(0);
+        // Append destination red dot.
+        svg.append("path")
+            .datum(emptyCircle())
+            .attr("id", "destDot")
+            .attr("d", path)
+            .style("fill", "red");
+        // Add doted path to destination.
+        svg.append("path")
+            .attr("id", "destPath")
+            .style("stroke", "red")
+            .style("fill", "none")
+            .style("stroke-dasharray", "2, 2");
+        // Append group for containing myTroops.
+        svg.append("g")
+            .attr("id", "myTroopGroup");
+        // Append group for containing otherTroops.
+        svg.append("g")
+            .attr("id", "otherTroopGroup");
+        position_labels();
+        updateTechTree();
+    }
+    function position_labels() { //how labels chage their angle
+        var centerPos = proj.invert([width/2,height/2]);
 
-            // points of locations
-            pntD = places.features;
-            svg.append("g").attr("class", "points")
-                .selectAll("text").data(places.features)
-                .enter().append("path")
-                .attr("class", "point")
-                .attr("d", path);
-            svg.append("g").attr("class", "labels")
-                .selectAll("text").data(places.features)
-                .enter().append("text")
-                .attr("class", "label")
-                .text(function (d) { return d.properties.name });
-
-            // append gray cover
-            var fogCircle = d3.geoCircle().center([0, 90]).radius(179)();
-            svg.append("path")
-                .datum(fogCircle)
-                .attr("class", "fog")
-                .attr("d", path)
-                .attr("fill", "url(#fog)")
-                .attr("mask", "url(#visionMask)");
-            // sun shine land brighter
-            svg.append("circle")
-                .attr("cx", width / 2).attr("cy", height / 2)
-                .attr("r", proj.scale())
-                .attr("class", "noclicks")
-                .style("fill", "url(#globe_highlight)");
-            // shadows on the side
-            svg.append("circle")
-                .attr("cx", width / 2).attr("cy", height / 2)
-                .attr("r", proj.scale())
-                .attr("class", "noclicks")
-                .style("fill", "url(#globe_shading)");
-            // Group for containing resource points.
-            svg.append("g")
-                .attr("class", "resources");
-            var emptyCircle = d3.geoCircle().radius(0);
-            // Append destination red dot.
-            svg.append("path")
-                .datum(emptyCircle())
-                .attr("id", "destDot")
-                .attr("d", path)
-                .style("fill", "red");
-            // Add doted path to destination.
-            svg.append("path")
-                .attr("id", "destPath")
-                .style("stroke", "red")
-                .style("fill", "none")
-                .style("stroke-dasharray", "2, 2");
-            // Append group for containing myTroops.
-            svg.append("g")
-                .attr("id", "myTroopGroup");
-            // Append group for containing otherTroops.
-            svg.append("g")
-                .attr("id", "otherTroopGroup");
-            position_labels();
-            updateTechTree();
+        svg.selectAll(".label")
+            .attr("text-anchor",function(d) {
+                var x = proj(d.geometry.coordinates)[0];
+                return x < width/2-20 ? "start" :
+                        x < width/2+20 ? "middle" : 
+                        "end"
+            })
+            .attr("transform", function(d) {
+                var loc = proj(d.geometry.coordinates),
+                x = loc[0],
+                y = loc[1];
+                var offset = x < width/2 ? 5 : -5;
+                return "translate(" + (x+offset) + "," + (y-2) + ")"
+            })
+            .style("display",function(d) {
+                var d = d3.geoDistance(d.geometry.coordinates, centerPos);
+                return (d > 1.3) ? 'none' : 'inline';
+            });
+        svg.selectAll(".point")
+            .style("display",function(d) {
+                var d = d3.geoDistance(d.geometry.coordinates, centerPos);
+                return (d > 1.3) ? 'none' : 'block';
+            });
+        // Troop must disappear outside of sphere.
+        svg.selectAll(".myTroop")
+            .style("display",function(d) {
+                var d = d3.geoDistance(d.loc, centerPos);
+                return (d > 1.3) ? 'none' : 'block';
+            });
+        svg.selectAll(".notMyTroop")
+            .style("display",function(d) {
+                var d = d3.geoDistance(d.loc, centerPos);
+                return (d > 1.3) ? 'none' : 'block';
+            });
+    }
+    var m0, o0;
+    function mousedown() {
+        // d3.event => current event, if any.
+        m0 = [d3.event.pageX, d3.event.pageY];
+        o0 = proj.rotate();
+        d3.event.preventDefault();
+    }
+    function mousemove() {
+        if (m0) {
+            var m1 = [d3.event.pageX, d3.event.pageY], 
+                o1 = [o0[0] + (m1[0] - m0[0]) / 6, o0[1] + (m0[1] - m1[1]) / 6];
+            /*
+            o1[1] = o1[1] > 30  ? 30  :
+                    o1[1] < -30 ? -30 :
+                    o1[1];
+            */
+            proj.rotate(o1);
+            refresh();
         }
-        function position_labels() { //how labels chage their angle
-            var centerPos = proj.invert([width / 2, height / 2]);
-
-            svg.selectAll(".label")
-                .attr("text-anchor", function (d) {
-                    var x = proj(d.geometry.coordinates)[0];
-                    return x < width / 2 - 20 ? "start" :
-                        x < width / 2 + 20 ? "middle" :
-                            "end"
-                })
-                .attr("transform", function (d) {
-                    var loc = proj(d.geometry.coordinates),
-                        x = loc[0],
-                        y = loc[1];
-                    var offset = x < width / 2 ? 5 : -5;
-                    return "translate(" + (x + offset) + "," + (y - 2) + ")"
-                })
-                .style("display", function (d) {
-                    var d = d3.geoDistance(d.geometry.coordinates, centerPos);
-                    return (d > 1.3) ? 'none' : 'inline';
-                });
-            svg.selectAll(".point")
-                .style("display", function (d) {
-                    var d = d3.geoDistance(d.geometry.coordinates, centerPos);
-                    return (d > 1.3) ? 'none' : 'block';
-                });
-            // Troop must disappear outside of sphere.
-            svg.selectAll(".myTroop")
-                .style("display", function (d) {
-                    var d = d3.geoDistance(d.loc, centerPos);
-                    return (d > 1.3) ? 'none' : 'block';
-                });
-            svg.selectAll(".notMyTroop")
-                .style("display", function (d) {
-                    var d = d3.geoDistance(d.loc, centerPos);
-                    return (d > 1.3) ? 'none' : 'block';
-                });
-        }
-        var m0, o0;
-        function mousedown() {
-            // d3.event => current event, if any.
-            m0 = [d3.event.pageX, d3.event.pageY];
-            o0 = proj.rotate();
-            d3.event.preventDefault();
-        }
-        function mousemove() {
-            if (m0) {
-                var m1 = [d3.event.pageX, d3.event.pageY],
-                    o1 = [o0[0] + (m1[0] - m0[0]) / 6, o0[1] + (m0[1] - m1[1]) / 6];
-                /*
-                o1[1] = o1[1] > 30  ? 30  :
-                        o1[1] < -30 ? -30 :
-                        o1[1];
-                */
-                proj.rotate(o1);
-                refresh();
+    }
+    function setSelectedAsNone(){
+        svg.select("#destDot")
+            .datum(emptyGeoCircle)
+            .attr("d", path);
+        svg.select("#destPath")
+            .datum(emptyGeoLineString)
+            .attr("d", path);
+    }
+    function moveDestination(){
+        if (m0[0] == d3.event.pageX && m0[1] == d3.event.pageY) {
+            console.log(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]));
+            var centerPos = proj.invert([width/2,height/2]);
+            var arc = d3.geoDistance;
+            var d = arc(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]), centerPos);
+            if (currentTroop != null && d3.event.target != currentTroop._groups[0][0] && d < Math.PI / 2) {
+                // send request to change dest.
+                currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
+                $.ajax(
+                    `${serverURL}/updateDest`, {
+                        method: 'post',
+                        data: currentTroop.data()[0]
+                    }
+                )
+                console.log(currentTroop.data()[0]);
+                var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
+                svg.select("#destDot")
+                    .datum(destDot)
+                    .attr("d", path);
+                // Render the path.
+                var pathLineString = {
+                    "type": "LineString",
+                    "coordinates": [
+                        currentTroop.data()[0].loc, currentTroop.data()[0].dest
+                    ]
+                };
+                // console.log(pathLineString);
+                var destPath = d3.geoPath(pathLineString);
+                // console.log(destPath());
+                svg.select("#destPath")
+                    .datum(pathLineString)
+                    .attr("d", path);
+                // console.log(currentTroop.data()[0].loc);
+                // console.log(currentTroop.data()[0].dest);
             }
         }
-        function setSelectedAsNone() {
-            svg.select("#destDot")
-                .datum(emptyGeoCircle)
-                .attr("d", path);
-            svg.select("#destPath")
-                .datum(emptyGeoLineString)
-                .attr("d", path);
+    }
+    function mouseup() {
+        if (m0) {
+            mousemove();
+            m0 = null;
         }
-        function moveDestination() {
-            if (m0[0] == d3.event.pageX && m0[1] == d3.event.pageY) {
-                console.log(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]));
-                var centerPos = proj.invert([width / 2, height / 2]);
-                var arc = d3.geoDistance;
-                var d = arc(proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]), centerPos);
-                if (currentTroop != null && d3.event.target != currentTroop._groups[0][0] && d < Math.PI / 2) {
-                    // send request to change dest.
-                    currentTroop.data()[0].dest = proj.invert([d3.event.pageX - 7, d3.event.pageY - 7]);
-                    $.ajax(
-                        `${serverURL}/updateDest`, {
-                            method: 'post',
-                            data: currentTroop.data()[0]
-                        }
-                    )
-                    console.log(currentTroop.data()[0]);
-                    var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(0.7);
-                    svg.select("#destDot")
-                        .datum(destDot)
-                        .attr("d", path);
-                    // Render the path.
-                    var pathLineString = {
-                        "type": "LineString",
-                        "coordinates": [
-                            currentTroop.data()[0].loc, currentTroop.data()[0].dest
-                        ]
-                    };
-                    // console.log(pathLineString);
-                    var destPath = d3.geoPath(pathLineString);
-                    // console.log(destPath());
-                    svg.select("#destPath")
-                        .datum(pathLineString)
-                        .attr("d", path);
-                    // console.log(currentTroop.data()[0].loc);
-                    // console.log(currentTroop.data()[0].dest);
-                }
-            }
-        }
-        function mouseup() {
-            if (m0) {
-                mousemove();
-                m0 = null;
-            }
-        }
-        function refresh() {
-            svg.selectAll(".land").attr("d", path);
-            svg.selectAll(".countries path").attr("d", path);
-            svg.selectAll(".graticule").attr("d", path);
-            svg.selectAll(".point").attr("d", path);
-            svg.selectAll(".fog").attr("d", path);
-            svg.selectAll(".fogMask").attr("d", path);
-            svg.select("#focusTroop").attr("d", path);
-            svg.selectAll(".myTroop")
-                .attr("x", function (d) { return proj(d.loc)[0] })
-                .attr("y", function (d) { return proj(d.loc)[1] });
-            svg.selectAll(".notMyTroop")
-                .attr("x", function (d) { return proj(d.loc)[0] })
-                .attr("y", function (d) { return proj(d.loc)[1] });
-            svg.select("#destDot").attr("d", path);
-            svg.select("#destPath").attr("d", path);
-            svg.selectAll(".resource").attr("d", function (d) {
+    }
+    function refresh() {
+        svg.selectAll(".land").attr("d", path);
+        svg.selectAll(".countries path").attr("d", path);
+        svg.selectAll(".graticule").attr("d", path);
+        svg.selectAll(".point").attr("d", path);
+        svg.selectAll(".fog").attr("d", path);
+        svg.selectAll(".fogMask").attr("d", path);
+        svg.select("#focusTroop").attr("d", path);
+        svg.selectAll(".myTroop")
+            .attr("x", function(d){return proj(d.loc)[0]})
+            .attr("y", function(d){return proj(d.loc)[1]});
+        svg.selectAll(".notMyTroop")
+            .attr("x", function(d){return proj(d.loc)[0]})
+            .attr("y", function(d){return proj(d.loc)[1]});
+        svg.select("#destDot").attr("d", path);
+        svg.select("#destPath").attr("d", path);
+        svg.selectAll(".resource").attr("d", function(d){
                 return path(d.path);
             });
-            svg.selectAll(".attackRange").attr("d", path);
-            position_labels();
-        }
-        function updateResource(resourcePoints) {
-            // Data join.
-            var resources = svg.select(".resources").selectAll(".resource")
-                .data(function () {
-                    var resourceCircle = [];
-                    resourcePoints.forEach(function (d) {
-                        var r = d3.geoCircle().center(d.loc).radius(d.range)();
-                        resourceCircle.push(r);
-                        d.path = r;
-                    });
-                    return resourcePoints;
+        svg.selectAll(".attackRange").attr("d", path);
+        position_labels();
+    }
+    function updateResource(resourcePoints){
+        // Data join.
+        var resources = svg.select(".resources").selectAll(".resource")
+            .data(function(){
+                var resourceCircle = [];
+                resourcePoints.forEach(function(d){
+                    var r = d3.geoCircle().center(d.loc).radius(d.range)();
+                    resourceCircle.push(r);
+                    d.path = r;
                 });
-            // Append new and merge.
-            resources.enter().append("path")
-                .attr("class", "resource")
-                .attr("fill", "red")
-                .style("fill-opacity", "0.2")
-                .attr("stroke", "red")
-                .style("stroke-opacity", 0.4)
-                .style("stroke-width", 1)
-                .style("stroke-dasharray", "5, 5")
-                .on("mousedown", function (d, i) {
-                    if (currentTroop == null) {
-                        $.post(
-                            `${serverURL}/mineResource`, {
-                                "country": myCountry,
-                                "resourceID": d.id
-                            }
-                        );
-                    }
-                })
-                .on("mouseover", function (d) {
-                    toolTip.attr("class", "toolTipResource")
-                        .transition()
-                        .duration(200)
-                        .style("opacity", 0.9);
-                    toolTip.style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY - 42) + "px")
-                        .style("height", function () {
-                            return 14 * (Object.keys(d.award).length + 1) + "px";
-                        })
-                        .html(function () {
-                            var str = "Cost: $" + d.cost + "<br/>";
-                            for (var category in d.award) {
-                                str += category + ": " + d.award[category] + "<br/>";
-                            }
-                            return str;
-                        });
-                })
-                .on("mouseout", function () {
-                    toolTip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                })
-                .merge(resources)
-                .attr("d", function (d) {
-                    return path(d.path);
-                });
-            // Remove excess elements.
-            resources.exit().remove();
-        }
-        function updateTroop(selfTroops, otherTroops) {
-            // Update checkbox.
-            d3.select("#friendOrEnemyContainer").selectAll("input")
-                .filter(function (d) { return d == selfTroops.Nation }).property("disabled", "true")
-
-            // Data join.
-            var attackRange = svg.select("#myTroopGroup")
-                .selectAll("path")
-                .data(function () {
-                    var aryAttackR = [];
-                    selfTroops.Troops.forEach(function (d) {
-                        var attackRCircle = d3.geoCircle().center(d.loc).radius(d.attackR)();
-                        aryAttackR.push(attackRCircle);
-                    });
-                    return aryAttackR;
-                });
-            // Append new data, merge, and update.
-            attackRange.enter().append("path")
-                .attr("class", "attackRange")
-                .merge(attackRange)
-                .attr("d", function (d) {
-                    return path(d);
-                });
-            // Remove excess element.
-            attackRange.exit().remove();
-
-            var myTroops = svg.select("#myTroopGroup")
-                .selectAll("image")
-                .data(selfTroops.Troops);
-            myTroops.enter()
-                .append("image")
-                .attr("href", selfTroops.Nation + ".png")
-                .attr("class", "myTroop")
-                .attr("height", 10)
-                .attr("width", 10)
-                .property("selected", false)
-                .on("mousedown", function (data, index) {
-                    // Reset all selected forall other nodes.
-                    svg.selectAll(".myTroop")
-                        .filter(function (d, i) { return i != index })
-                        .property("selected", false);
-                    // Modify this troop.
-                    currentTroop = d3.select(this);
-                    currentTroop.property("selected", !currentTroop.property("selected"));
-                    var newCircle = null;
-                    var opacityValue = 0.3;
-                    // Render red dot.
-                    if (currentTroop.data()[0].dest != null) {
-                        var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(1);
-                        var theDest = svg.select("#destDot")
-                            .datum(destDot)
-                            .attr("opacity", 0)
-                            .attr("d", path);
-                        theDest.transition()
-                            .duration(400)
-                            .attr("opacity", 1);
-                        // Render the path.
-                        var pathLineString = {
-                            "type": "LineString",
-                            "coordinates": [
-                                currentTroop.data()[0].loc, currentTroop.data()[0].dest
-                            ]
-                        };
-                        var destPath = d3.geoPath(pathLineString);
-                        var thePath = svg.select("#destPath")
-                            .datum(pathLineString)
-                            .attr("opacity", 0)
-                            .attr("d", path);
-                        thePath.transition()
-                            .duration(400)
-                            .attr("opacity", 1);
-                    }
-                    else {
-                        setSelectedAsNone();
-                    }
-                    if (currentTroop.property("selected")) {
-                        var src = currentTroop.data()[0];
-                        newCircle = d3.geoCircle()
-                            .center([src.loc[0], src.loc[1]])
-                            .radius(src.attackR);
-                        svg.select("#focusTroop")
-                            .style("opacity", 0)
-                            .datum(newCircle())
-                            .attr("d", path);
-                    }
-                    else {
-                        opacityValue = 0;
-                        currentTroop = null;
-                        svg.select("#destDot")
-                            .datum(emptyGeoCircle)
-                            .attr("d", path);
-                        svg.select("#destPath")
-                            .datum(emptyGeoLineString)
-                            .attr("d", path);
-                    }
-
-                    svg.select("#focusTroop")
-                        .transition()
-                        .duration(300)
-                        .style("opacity", opacityValue);
-                })
-                .on("mouseover", function (d) {
-                    toolTip.attr("class", "toolTipSelf")
-                        .transition()
-                        .duration(200)
-                        .style("opacity", 0.9);
-                    toolTip.html(function () {
-                        var str = myCountry + " #" + d.id + "<br/>"
-                            + "AD: " + Math.round(d.size * d.unitAD) + "<br/>"
-                            + "HP: " + Math.round(d.size * d.unitHP) + "<br/>";
-                        return str;
+                return resourcePoints;
+            });
+        // Append new and merge.
+        resources.enter().append("path")
+            .attr("class", "resource")
+            .attr("fill", "red")
+            .style("fill-opacity", "0.2")
+            .attr("stroke", "red")
+            .style("stroke-opacity", 0.4)
+            .style("stroke-width", 1)
+            .style("stroke-dasharray", "5, 5")
+            .on("mousedown", function(d, i){
+                if (currentTroop == null) {
+                    $.post(
+                        `${serverURL}/mineResource`, {
+                            "country": myCountry,
+                            "resourceID": d.id
+                        }
+                    );
+                }
+            })
+            .on("mouseover", function(d){
+                toolTip.attr("class", "toolTipResource")
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 0.9);
+                toolTip.style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 42) + "px")
+                    .style("height", function(){
+                        return 14*(Object.keys(d.award).length + 1) + "px";
                     })
-                        .style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY - 42) + "px")
-                        .style("height", 14 * 3 + "px")
-                        .style("width", "80px");
-                })
-                .on("mouseout", function () {
-                    toolTip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                })
-                .attr("transform", function (d) {
-                    var output = "translate(-" + (d.fogR / 2) + ",-" + (d.fogR / 2) + ")"
-                    return output;
-                })
-                .merge(myTroops);
-
-            // Update currentTroop.
-            if (currentTroop != null) {
-                var countryName = currentTroop.data()[0].country;
-                var countryID = currentTroop.data()[0].id;
-                currentTroop = svg.selectAll(".myTroop")
-                    .filter(function (d) { return d.id == countryID });
+                    .html(function(){
+                        var str = "Cost: $" + d.cost + "<br/>";
+                        for(var category in d.award){
+                            str += category + ": " + d.award[category] + "<br/>";
+                        }
+                        return str;
+                    });    
+            })
+            .on("mouseout", function(){
+                toolTip.transition()        
+                    .duration(500)      
+                    .style("opacity", 0);
+            })
+        .merge(resources)
+            .attr("d", function(d){
+                return path(d.path);
+            });
+        // Remove excess elements.
+        resources.exit().remove();
+    }
+    function updateTroop(selfTroops, otherTroops){
+        // Update checkbox.
+        d3.select("#friendOrEnemyContainer").selectAll("input")
+            .filter(function(d) { return d == selfTroops.Nation}).property("disabled", "true")
+        
+        // Data join.
+        var attackRange = svg.select("#myTroopGroup")
+            .selectAll("path")
+            .data(function(){
+                var aryAttackR = [];
+                selfTroops.Troops.forEach(function(d){
+                    var attackRCircle = d3.geoCircle().center(d.loc).radius(d.attackR)();
+                    aryAttackR.push(attackRCircle);
+                });
+                return aryAttackR;
+            });
+        // Append new data, merge, and update.
+        attackRange.enter().append("path")
+            .attr("class", "attackRange")
+        .merge(attackRange)
+        .attr("d", function(d){
+            return path(d);
+        });
+        // Remove excess element.
+        attackRange.exit().remove();
+        
+        var myTroops = svg.select("#myTroopGroup")
+            .selectAll("image")
+            .data(selfTroops.Troops);
+        myTroops.enter()
+            .append("image")
+            .attr("href", selfTroops.Nation + ".png")
+            .attr("class", "myTroop")
+            .attr("height", 10)
+            .attr("width", 10)
+            .property("selected", false)
+            .on("mousedown", function(data, index){
+                // Reset all selected forall other nodes.
+                svg.selectAll(".myTroop")
+                    .filter(function(d, i) { return i != index})
+                    .property("selected", false);
+                // Modify this troop.
+                currentTroop = d3.select(this);
+                currentTroop.property("selected", !currentTroop.property("selected"));
+                var newCircle = null;
+                var opacityValue = 0.3;
                 // Render red dot.
                 if (currentTroop.data()[0].dest != null) {
                     var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(1);
                     var theDest = svg.select("#destDot")
                         .datum(destDot)
-                        .attr("opacity", 1)
+                        .attr("opacity", 0)
                         .attr("d", path);
+                    theDest.transition()
+                        .duration(400)
+                        .attr("opacity", 1);
                     // Render the path.
                     var pathLineString = {
                         "type": "LineString",
@@ -856,10 +769,28 @@
                     var destPath = d3.geoPath(pathLineString);
                     var thePath = svg.select("#destPath")
                         .datum(pathLineString)
-                        .attr("opacity", 1)
+                        .attr("opacity", 0)
+                        .attr("d", path);
+                    thePath.transition()
+                        .duration(400)
+                        .attr("opacity", 1);
+                }
+                else {
+                    setSelectedAsNone();
+                }
+                if (currentTroop.property("selected")) {
+                    var src = currentTroop.data()[0];
+                    newCircle = d3.geoCircle()
+                        .center([src.loc[0], src.loc[1]])
+                        .radius(src.attackR);
+                    svg.select("#focusTroop")
+                        .style("opacity", 0)
+                        .datum(newCircle())
                         .attr("d", path);
                 }
                 else {
+                    opacityValue = 0;
+                    currentTroop = null;
                     svg.select("#destDot")
                         .datum(emptyGeoCircle)
                         .attr("d", path);
@@ -867,297 +798,365 @@
                         .datum(emptyGeoLineString)
                         .attr("d", path);
                 }
-            }
 
-            // Update fog of war.
-            var fogSelf = svg.selectAll(".fogMasksSelf")
-                .selectAll("path")
-                .data(function () {
-                    // Extract info for selfTroops fog.
-                    var troopFogList = [];
-                    selfTroops.Troops.forEach(function (d) {
-                        var fogCircleMask = d3.geoCircle().center(d.loc).radius(d.fogR);
-                        troopFogList.push(fogCircleMask());
-                    });
-                    return troopFogList;
-                });
-            fogSelf.enter()
-                .append("path")
-                .merge(fogSelf)
-                .attr("d", path)
-                .attr("class", "fogMask")
-                .style("fill", "black");
-            fogSelf.exit().remove();
-
-
-            // Update other troop.
-            var otherTroop = svg.select("#otherTroopGroup")
-                .selectAll("image")
-                .data(otherTroops.Troops);
-            otherTroop.enter()
-                .append("image")
-                .attr("href", function (d) {
-                    return d.country + ".png";
-                })
-                .attr("class", "notMyTroop")
-                .attr("height", 10)
-                .attr("width", 10)
-                .attr("transform", "translate(-5,-5)")
-                .on("mouseover", function (d) {
-                    toolTip.attr("class", "toolTipOther")
-                        .transition()
-                        .duration(200)
-                        .style("opacity", 0.9);
-                    toolTip.html(function () {
-                        var str = d.country + " "
-                            + "#" + d.id + "<br/>"
-                            + "AD: " + d.AD + "<br/>"
-                            + "HP: " + d.HP + "<br/>";
+                svg.select("#focusTroop")
+                    .transition()
+                    .duration(300)
+                    .style("opacity", opacityValue);
+            })
+            .on("mouseover", function(d){
+                toolTip.attr("class", "toolTipSelf")
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 0.9);
+                toolTip.html(function(){
+                        var str = myCountry + " #" + d.id + "<br/>"
+                                + "AD: " + Math.round(d.size * d.unitAD) + "<br/>"
+                                + "HP: " + Math.round(d.size * d.unitHP) + "<br/>";
                         return str;
                     })
-                        .style("left", (d3.event.pageX + 15) + "px")
-                        .style("top", (d3.event.pageY - 40) + "px")
-                        .style("height", 14 * 3 + "px")
-                        .style("width", "80px");
-                })
-                .on("mouseout", function () {
-                    toolTip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                })
-                .merge(otherTroop);
-            otherTroop.exit().remove();
-            // Refresh display.
-            refresh();
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 42) + "px")
+                    .style("height", 14*3 + "px")
+                    .style("width", "80px");    
+            })
+            .on("mouseout", function(){
+                toolTip.transition()        
+                    .duration(500)      
+                    .style("opacity", 0);
+            })
+            .attr("transform", function(d){
+                var output = "translate(-" + (d.fogR/2) + ",-" + (d.fogR/2) + ")"
+                return output;
+            })
+            .merge(myTroops);
 
-        }
-
-        let countryData = {};
-        let otherData = {};
-        const myCountry = localStorage.getItem("Country");;
-        const serverURL = 'http://rootn.rocks:8000/api';
-
-        setInterval(function () {
-            $.get(`${serverURL}/getMyTroops`, { country: myCountry }, function (data, status) {
-                countryData = data.countryData;
-                otherData = data.otherData;
-                updateTroop(data.countryData, data.otherData)
-            });
-            $.get(`${serverURL}/resource`, { country: myCountry }, function (data, status) {
-                var aryResource = [];
-                for (var r in data.resource) {
-                    var tmp = {};
-                    tmp.category = r;
-                    tmp.value = data.resource[r];
-                    aryResource.push(tmp);
-                }
-                var join = d3.select("#resourceMonitor").selectAll("div").data(aryResource);
-                var enter = join.enter()
-                    .append("div")
-                    .append("span")
-                    .merge(join)
-                    .html(function (d) {
-                        return d.category + ':' + d.value;
-                    });
-                enter.exit().remove();
-            });
-            $.get(`${serverURL}/resourcePoint`, function (data, status) {
-                updateResource(data);
-            });
-            $.get(`${serverURL}/countryInfo`, { country: myCountry }, function (data, status) {
-                d3.select("#buyTroopsBtn")
-                    .style("display", "block")
-                    .html("Buy Troops<br>$" + data.troopCost + " / unit");
-                d3.select("#moneyMonitor").html("Money: " + data.money);
-            });
-        }, 1000);
-        function updateTechTree() {
-            $.get(`${serverURL}/techTree`, { country: myCountry }, function (data, status) {
-                if (data.nuclear.developed) {
-                    d3.select("#nuclearDiv").transition()
-                        .duration(1000)
-                        .style("opacity", "1");
-                }
-                root = d3.hierarchy(spaghetti2Tree(data), function (d) { return d.children; });
-                root.x = 200;
-                root.y = 200;
-                update(root);
-                //spaghetti2Tree(data.techTree.atk);
-            });
-            function spaghetti2Tree(data) {
-                var nuclear = data.nuclear;
-                nuclear.children = [];
-                nuclear.category = "Atk";
-                nuclear.effect = "INFINITY";
-                for (var category in data.techTree) {
-                    var info = data.techTree[category];
-                    var obj = null;
-                    info.forEach(function (d) {
-                        if (obj == null) {
-                            obj = d;
-                            obj.category = category;
-                        }
-                        else {
-                            var tmp = d;
-                            tmp.children = [];
-                            tmp.children.push(obj);
-                            obj = tmp;
-                            obj.category = category;
-                        }
-                    });
-                    nuclear.children.push(obj);
-                }
-                return nuclear;
+        // Update currentTroop.
+        if (currentTroop != null) {
+            var countryName = currentTroop.data()[0].country;
+            var countryID = currentTroop.data()[0].id;
+            currentTroop = svg.selectAll(".myTroop")
+                .filter(function(d) { return d.id == countryID});
+            // Render red dot.
+            if (currentTroop.data()[0].dest != null) {
+                var destDot = d3.geoCircle().center(currentTroop.data()[0].dest).radius(1);
+                var theDest = svg.select("#destDot")
+                    .datum(destDot)
+                    .attr("opacity", 1)
+                    .attr("d", path);
+                // Render the path.
+                var pathLineString = {
+                    "type": "LineString",
+                    "coordinates": [
+                        currentTroop.data()[0].loc, currentTroop.data()[0].dest
+                    ]
+                };
+                var destPath = d3.geoPath(pathLineString);
+                var thePath = svg.select("#destPath")
+                    .datum(pathLineString)
+                    .attr("opacity", 1)
+                    .attr("d", path);
+            }
+            else {
+                svg.select("#destDot")
+                    .datum(emptyGeoCircle)
+                    .attr("d", path);
+                svg.select("#destPath")
+                    .datum(emptyGeoLineString)
+                    .attr("d", path);
             }
         }
-    </script>
-    <script>
-        // declares a tree layout and assigns the size
-        var treemap = d3.tree().size([techHeight, techWidth]).nodeSize([100, 100]);
 
-        function update(source) {
-            var i = 0
-            // Assigns the x and y position for the nodes
-            var treeData = treemap(root);
-
-            // Compute the new tree layout.
-            var nodes = treeData.descendants(),
-                links = treeData.descendants().slice(1);
-
-            // Normalize for fixed-depth.
-            nodes.forEach(function (d) {
-                d.y = - d.depth * 120 * 0.4;
+        // Update fog of war.
+        var fogSelf = svg.selectAll(".fogMasksSelf")
+            .selectAll("path")
+            .data(function(){
+                // Extract info for selfTroops fog.
+                var troopFogList = [];
+                selfTroops.Troops.forEach(function(d){
+                    var fogCircleMask = d3.geoCircle().center(d.loc).radius(d.fogR);
+                    troopFogList.push(fogCircleMask());
+                });
+                return troopFogList;
             });
+        fogSelf.enter()
+            .append("path")
+        .merge(fogSelf)
+            .attr("d", path)
+            .attr("class", "fogMask")
+            .style("fill", "black");
+        fogSelf.exit().remove();
+        
+        
+        // Update other troop.
+        var otherTroop = svg.select("#otherTroopGroup")
+            .selectAll("image")
+            .data(otherTroops.Troops);
+        otherTroop.enter()
+            .append("image")
+            .attr("href", function(d){
+                return d.country + ".png";
+            })
+            .attr("class", "notMyTroop")
+            .attr("height", 10)
+            .attr("width", 10)
+            .attr("transform", "translate(-5,-5)")
+            .on("mouseover", function(d){
+                toolTip.attr("class", "toolTipOther")
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 0.9);
+                toolTip.html(function(){
+                        var str = d.country + " "
+                                + "#" + d.id + "<br/>"
+                                + "AD: " + d.AD + "<br/>"
+                                + "HP: " + d.HP + "<br/>";
+                        return str;
+                    })
+                    .style("left", (d3.event.pageX + 15) + "px")
+                    .style("top", (d3.event.pageY - 40) + "px")
+                    .style("height", 14*3 + "px")
+                    .style("width", "80px");  
+            })
+            .on("mouseout", function(){
+                toolTip.transition()        
+                    .duration(500)      
+                    .style("opacity", 0);
+            })
+            .merge(otherTroop);
+        otherTroop.exit().remove();
+        // Refresh display.
+        refresh();
+        
+    }
 
-            // ****************** Nodes section ***************************
-
-            // Update the nodes...
-            var node = svgTech.selectAll('g.node')
-                .data(nodes, function (d) { return d.id || (d.id = ++i); });
-
-            // Enter any new modes at the parent's previous position.
-            var nodeEnter = node.enter().append('g')
-                .attr('class', 'node');
-
-            // Add Circle for the nodes
-            nodeEnter.append('image')
-                .attr('class', 'node')
-                .on('click', click)
-                .on('mouseover', toolTipShow)
-                .on('mouseout', toolTipClose);
-
-            // Add labels for the nodes
-            // nodeEnter.append('text')
-            //     .attr("dy", ".35em")
-            //     .attr("x", -8)
-            //     .attr("text-anchor", "end")
-            //     .text(function(d) { return d.data.name; })
-            //     .style("color", "#ffffff");
-
-            // UPDATE
-            var nodeUpdate = nodeEnter.merge(node);
-
-            // Transition to the proper position for the node
-            nodeUpdate.attr("transform", function (d) {
-                return "translate(" + (d.x - 22.5) + "," + (d.y - 5) + ")";
-            });
-
-            // Update the node attributes and style
-            nodeUpdate.select('image.node')
-                .attr('cursor', 'pointer')
-                .attr('href', function (d) {
-                    if (d.data.developed == true) {
-                        return 'icons/' + d.data.name + '_color' + '.jpg';
+    let countryData = {};
+    let otherData = {};
+    const myCountry = localStorage.getItem("Country");
+    const serverURL = 'http://rootn.rocks:8000/api';
+    
+    setInterval(function(){
+        $.get(`${serverURL}/getMyTroops`, { country: myCountry}, function (data, status) {
+            countryData = data.countryData;
+            otherData = data.otherData;
+            updateTroop(data.countryData, data.otherData)
+        });
+        $.get(`${serverURL}/resource`, {country: myCountry} , function (data, status) {
+            var aryResource = [];
+            for (var r in data.resource) {
+                var tmp = {};
+                tmp.category = r;
+                tmp.value = data.resource[r];
+                aryResource.push(tmp);
+            }
+            var join = d3.select("#resourceMonitor").selectAll("div").data(aryResource);
+            var enter = join.enter()
+                .append ("div")
+                .append("span")
+                .merge(join)
+                .html(function(d){
+                    return d.category + ':' + d.value;
+                });
+            enter.exit().remove();
+        });
+        $.get(`${serverURL}/resourcePoint`, function (data, status) {
+            updateResource(data);
+        });
+        $.get(`${serverURL}/countryInfo`, {country: myCountry} , function (data, status) {
+            d3.select("#buyTroopsBtn")
+                .style("display", "block")
+                .html("Buy Troops<br>$" + data.troopCost + " / unit");
+            d3.select("#moneyMonitor").html("Money: "+data.money);
+        });
+    }, 1000);
+    function updateTechTree(){
+        $.get(`${serverURL}/techTree`, {country: myCountry} , function (data, status) {
+            if (data.nuclear.developed) {
+                d3.select("#nuclearDiv").transition()
+                    .duration(1000)
+                    .style("opacity", "1");
+            }
+            root = d3.hierarchy(spaghetti2Tree(data), function(d) { return d.children; });
+            root.x = 200;
+            root.y = 200;
+            update(root);
+            //spaghetti2Tree(data.techTree.atk);
+        });
+        function spaghetti2Tree(data){
+            var nuclear = data.nuclear;
+            nuclear.children = [];
+            nuclear.category = "Atk";
+            nuclear.effect = "INFINITY";
+            for(var category in data.techTree){
+                var info = data.techTree[category];
+                var obj = null;
+                info.forEach(function(d){
+                    if (obj == null) { 
+                         obj = d;
+                         obj.category = category;
                     }
-                    else {
-                        return 'icons/' + d.data.name + '_grey' + '.jpg';
+                    else{
+                        var tmp = d;
+                        tmp.children = [];
+                        tmp.children.push(obj);
+                        obj = tmp;
+                        obj.category = category;
                     }
-                })
-                .attr('width', 45)
-                .attr('height', 45);
+                });
+                nuclear.children.push(obj);
+            }
+            return nuclear;
+        }
+    }
+</script>
+<script>
+// declares a tree layout and assigns the size
+var treemap = d3.tree().size([techHeight, techWidth]).nodeSize([100,100]);
+
+function update(source) {
+    var i = 0
+    // Assigns the x and y position for the nodes
+    var treeData = treemap(root);
+
+    // Compute the new tree layout.
+    var nodes = treeData.descendants(),
+        links = treeData.descendants().slice(1);
+
+    // Normalize for fixed-depth.
+    nodes.forEach(function(d){ 
+        d.y = - d.depth * 120 * 0.4;
+    });
+
+    // ****************** Nodes section ***************************
+
+    // Update the nodes...
+    var node = svgTech.selectAll('g.node')
+        .data(nodes, function(d) {return d.id || (d.id = ++i); });
+
+    // Enter any new modes at the parent's previous position.
+    var nodeEnter = node.enter().append('g')
+        .attr('class', 'node');
+
+    // Add Circle for the nodes
+    nodeEnter.append('image')
+        .attr('class', 'node')
+        .on('click', click)
+        .on('mouseover', toolTipShow)
+        .on('mouseout', toolTipClose);
+
+    // Add labels for the nodes
+    // nodeEnter.append('text')
+    //     .attr("dy", ".35em")
+    //     .attr("x", -8)
+    //     .attr("text-anchor", "end")
+    //     .text(function(d) { return d.data.name; })
+    //     .style("color", "#ffffff");
+
+    // UPDATE
+    var nodeUpdate = nodeEnter.merge(node);
+
+    // Transition to the proper position for the node
+    nodeUpdate.attr("transform", function(d) { 
+        return "translate(" + (d.x - 22.5) + "," + (d.y - 5) + ")";
+    });
+
+    // Update the node attributes and style
+    nodeUpdate.select('image.node')
+        .attr('cursor', 'pointer')
+        .attr('href', function(d){
+            if (d.data.developed == true) {
+                return 'icons/' + d.data.name + '_color' + '.jpg'; 
+            }
+            else
+            {
+                return 'icons/' + d.data.name + '_grey' + '.jpg';
+            }
+        })
+        .attr('width', 45)
+        .attr('height', 45);
 
 
-            // Remove any exiting nodes
-            var nodeExit = node.exit().remove();
+    // Remove any exiting nodes
+    var nodeExit = node.exit().remove();
 
-            // ****************** links section ***************************
+    // ****************** links section ***************************
 
-            // Update the links...
-            var link = svgTech.selectAll('path.link')
-                .data(links, function (d) { return d.id; });
+    // Update the links...
+    var link = svgTech.selectAll('path.link')
+        .data(links, function(d) { return d.id; });
 
-            // Enter any new links at the parent's previous position.
-            var linkEnter = link.enter().insert('path', "g")
-                .attr("class", "link");
+    // Enter any new links at the parent's previous position.
+    var linkEnter = link.enter().insert('path', "g")
+        .attr("class", "link");
 
-            // UPDATE
-            var linkUpdate = linkEnter.merge(link);
+    // UPDATE
+    var linkUpdate = linkEnter.merge(link);
 
-            // Transition back to the parent element position
-            linkUpdate.attr('d', function (d) { return diagonal(d, d.parent) });
+    // Transition back to the parent element position
+    linkUpdate.attr('d', function(d){ return diagonal(d, d.parent) });
 
-            // Remove any exiting links
-            var linkExit = link.exit().remove();
+    // Remove any exiting links
+    var linkExit = link.exit().remove();
 
-            // Creates a curved (diagonal) path from parent to the child nodes
-            function diagonal(s, d) {
+    // Creates a curved (diagonal) path from parent to the child nodes
+    function diagonal(s, d) {
 
-                var p = `M ${s.x} ${s.y}
+        var p = `M ${s.x} ${s.y}
             C ${(s.x + d.x) / 2} ${s.y},
                 ${(s.x + d.x) / 2} ${d.y},
                 ${d.x} ${d.y}`
-                return p;
-            }
+        return p;
+    }
 
-            // Toggle children on click.
-            function click(d) {
-                if (!d.data.developed) {
-                    if (d.data.name == "nuclear") {
-                        console.log(d.data.name);
-                        $.post(
-                            `${serverURL}/developeNuke`, {
-                                "country": myCountry
-                            }
-                        );
+    // Toggle children on click.
+    function click(d) {
+        if (!d.data.developed) {
+            if (d.data.name == "nuclear") {
+                console.log(d.data.name);
+                $.post(
+                    `${serverURL}/developeNuke`, {
+                        "country": myCountry
                     }
-                    else {
-                        // Post request to update.
-                        $.get(`${serverURL}/developeTech`, { country: myCountry, tech: d.data.name, type: d.data.category });
-                    }
-                    // Update.
-                    setTimeout(updateTechTree, 500);
-                }
+                );
+            }
+            else{
+                // Post request to update.
+                $.get(`${serverURL}/developeTech`, { country: myCountry, tech: d.data.name, type: d.data.category });
+            }
+            // Update.
+            setTimeout(updateTechTree, 500);
+        }
+    }
+}
+// Tooltip Ccontrol.
+function toolTipShow(d) {
+    d = d.data;
+    toolTip.attr("class", 'toolTipTechtree')
+        .transition()
+        .duration(100)
+        .style("opacity", 0.9);
+    toolTip.html(function(){
+        var str = d.name + "<br/>";
+        str += d.category + ' x' + d.effect;
+        str += "<br/>";
+        str += "Cost: ";
+        for (var properties in d.cost) {
+            if (d.cost[properties] != 0) {
+                str += properties + ' ' + d.cost[properties] + ' ';
             }
         }
-        // Tooltip Ccontrol.
-        function toolTipShow(d) {
-            d = d.data;
-            toolTip.attr("class", 'toolTipTechtree')
-                .transition()
-                .duration(100)
-                .style("opacity", 0.9);
-            toolTip.html(function () {
-                var str = d.name + "<br/>";
-                str += d.category + ' x' + d.effect;
-                str += "<br/>";
-                str += "Cost: ";
-                for (var properties in d.cost) {
-                    if (d.cost[properties] != 0) {
-                        str += properties + ' ' + d.cost[properties] + ' ';
-                    }
-                }
-                str += "<br/>";
-                return str;
-            })
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 42) + "px");
-        }
-        function toolTipClose(d) {
-            toolTip.transition()
-                .duration(100)
-                .style("opacity", 0);
-        }
+        str += "<br/>";
+        return str;
+    })
+    .style("left", (d3.event.pageX) + "px")
+    .style("top", (d3.event.pageY - 42) + "px");  
+}
+function toolTipClose(d) {
+    toolTip.transition()
+        .duration(100)
+        .style("opacity", 0);
+}
 
-    </script>
+</script>
 
 </body>
