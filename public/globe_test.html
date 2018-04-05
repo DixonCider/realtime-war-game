@@ -894,6 +894,7 @@
             .data(otherTroops.Troops);
         otherTroop.enter()
             .append("image")
+            .merge(otherTroop)
             .attr("href", function(d){
                 return d.country + ".png";
             })
@@ -922,8 +923,8 @@
                 toolTip.transition()        
                     .duration(500)      
                     .style("opacity", 0);
-            })
-            .merge(otherTroop);
+            });
+            
         otherTroop.exit().remove();
         // Refresh display.
         refresh();
