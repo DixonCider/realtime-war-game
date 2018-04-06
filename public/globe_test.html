@@ -484,6 +484,9 @@
             .attr("r", proj.scale())
             .attr("class","noclicks")
             .style("fill", "url(#globe_shading)");
+        // Group for containing atk range.
+        svg.append("g")
+        	.attr("id", "myTroopGroupAtkRange");
         // Group for containing resource points.
         svg.append("g")
             .attr("class", "resources");
@@ -708,7 +711,7 @@
             .filter(function(d) { return d == selfTroops.Nation}).property("disabled", "true")
         
         // Data join.
-        var attackRange = svg.select("#myTroopGroup")
+        var attackRange = svg.select("#myTroopGroupAtkRange")
             .selectAll("path")
             .data(function(){
                 var aryAttackR = [];
